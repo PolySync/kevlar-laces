@@ -4,132 +4,39 @@ from behave import *
 
 import subprocess
 import shlex
+import os
+import datetime
 
-def checkout_devel_branch(context):
-	command = 'git checkout devel'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-
-def create_random_file(context):
-	with open('rando_file.txt', 'w+') as random_file:
-		random_file.write("a not-so-random text file")
-
-def push_random_file(context):
-	command = 'git add rando_file.txt'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git commit -m "adding file to devel branch"'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git push origin devel'
+def shell_command(command):
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list)
 	result.wait()
 
-def remove_file(context):
-	command = 'git rm rando_file.txt'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
+def get_unique_number():
+    now = datetime.datetime.utcnow()
+    number_string = now.strftime("%Y%m%d-%H%M%S.%f")
+    return number_string
 
-def commit_removal(context):
-	command = 'git commit -m "test tear down"'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
+def setup_environment(context):
+	context.original_working_dir = os.getcwd()
+	unique_number = get_unique_number()
+	context.mock_git_dir = 'mock_git_{0}'.format(unique_number)
+	shell_command('git init {0}'.format(context.mock_git_dir))
+	os.chdir('{0}/{1}'.format(context.original_working_dir, context.mock_git_dir))
+	shell_command('cp -a /home/annie/work/tmp/test_repo_fixture/. .')
+	os.chdir(context.original_working_dir)
+	context.mock_dev_dir = 'mock_dev_{0}'.format(unique_number)
+	shell_command('mkdir {0}'.format(context.mock_dev_dir))
+	os.chdir('{0}/{1}'.format(context.original_working_dir, context.mock_dev_dir))
+	shell_command('git clone file://localhost/{0}/{1}'.format(context.original_working_dir, context.mock_git_dir))
+	os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+	shell_command('git fetch origin')
 
-def push_removal(context):
-	command = 'git push origin devel'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(command)
-	result.wait()
 
-def merge_removal(context):
-	command = 'git checkout master'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(command)
-	result.wait()
-	command = 'git merge -S --verify-signatures --no-ff -m "test tear down" origin/devel'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(command)
-	result.wait
-	command = 'git push origin master'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(command)
-	result.wait()
-
-def get_commit_hash(context):
-	command = 'git reflog'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
-	context.reflog = result.stdout.read()
-	result.wait()
-	log = context.reflog.splitlines()
-	log0 = log[0]
-	line = log0.split()
-	context.commit_sha_hash = line[0]
-
-def delete_branch_teardown(context):
-	command = 'git checkout master'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git rm rando_file.txt'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git commit -m "test tear down"'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git push origin master'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-
-def keep_branch_teardown(context):
-	command = 'git rm rando_file.txt'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git commit -m "test tear down"'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git push origin devel'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git checkout master'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git merge -S --verify-signatures --no-ff -m "test tear down" origin/devel'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git push origin master'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-
-def promote_teardown(context):
-	command = 'git checkout devel'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git tag --delete 0.0.0'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	command = 'git push origin :0.0.0'
-	args_list = shlex.split(command)
-	result = subprocess.Popen(args_list)
-	result.wait()
-	keep_branch_teardown(context)
+def teardown_environment(context):
+	os.chdir(context.original_working_dir)
+	shell_command('rm -rf {0}'.format(context.mock_dev_dir))
+	shell_command('rm -rf {0}'.format(context.mock_git_dir))
 
 def before_all(context):
 	pass
@@ -138,49 +45,19 @@ def before_feature(context, feature):
 	pass
 
 def before_scenario(context, scenario):
-	context.reflog=''
-	context.commit_sha_hash=''
-	create_random_file(context)
-	checkout_devel_branch(context)
-	push_random_file(context)
-	#get_commit_hash(context)
+	setup_environment(context)
 
 def before_step(context, step):
 	pass
-
-def before_tag(context, tag):
-	pass
-
-def after_tag(context, tag):
-	if tag == 'delete_branch':
-		delete_branch_teardown(context)
-	elif tag == 'keep_branch':
-		keep_branch_teardown(context)
-	elif tag == 'promote':
-		promote_teardown(context)
-	else:
-		pass
 
 def after_step(context, step):
 	pass
 
 def after_scenario(context, scenario):
-	#command = 'git revert {0}'.format(context.commit_sha_hash)
-	#args_list = shlex.split(command)
-	#result = subprocess.Popen(args_list)
-	#result.wait()
-	#remove_file(context)
-	#commit_removal(context)
-	#push_removal(context)
-	#merge_removal(context)
-	pass
+	teardown_environment(context)
 
 def after_feature(context, feature):
 	pass
 
 def after_all(context):
-	#command = 'git revert 4cb90ef'
-	#args_list = shlex.split(command)
-	#result = subprocess.Popen(args_list)
-	#result.wait()
 	pass

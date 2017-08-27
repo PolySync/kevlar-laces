@@ -5,6 +5,8 @@ from hamcrest import *
 
 import subprocess
 import shlex
+import os
+
 
 @given('The repo exists')
 def step_impl(context):
@@ -16,8 +18,8 @@ def step_impl(context):
 
 @when('I run the git-mergepr command from the command line')
 def step_impl(context):
-    command = 'git-mergepr devel master'
-    #command = "ls"
+    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    command = 'git mergepr devel master'
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
     context.output = result.stdout.read()
@@ -25,8 +27,8 @@ def step_impl(context):
 
 @when('I run the git-mergepr --no-prune command from the command line')
 def step_impl(context):
-    command = 'git-mergepr --no-prune devel master'
-    #command = "ls"
+    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    command = 'git mergepr --no-prune devel master'
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
     context.output = result.stdout.read()
@@ -35,6 +37,7 @@ def step_impl(context):
 @then('The PR should be merged')
 def step_impl(context):
     merged = False
+    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
     command = "git reflog"
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
@@ -51,6 +54,7 @@ def step_impl(context):
 @then('The merge commit should be signed')
 def step_impl(context):
     signed = False
+    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
     command = "git verify-commit {0}".format(context.sha_hash)
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stderr=subprocess.PIPE)
@@ -60,25 +64,24 @@ def step_impl(context):
     result.wait()
     assert_that(signed, True)
 
-
 @then("The PR's branch should be deleted from git")
 def step_impl(context):
     deleted = False
-    command = "git branch"
+    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    command = "git checkout devel"
     args_list = shlex.split(command)
-    result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
-    context.branch_list = result.stdout.read()
-    if not context.branch_name in context.branch_list:
-        deleted = True
-    assert_that(deleted, True)
+    result = subprocess.Popen(args_list)
+    result.communicate()
+    return_code = result.returncode
+    assert_that(return_code, equal_to(1))
 
 @then("The PR's branch should still exist")
 def step_impl(context):
     branch_present = False
-    command = "git branch"
+    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    command = "git checkout devel"
     args_list = shlex.split(command)
-    result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
-    context.branch_list = result.stdout.read()
-    if context.branch_name in context.branch_list:
-        branch_present = True
-    assert_that(branch_present, True)
+    result = subprocess.Popen(args_list)
+    result.communicate()
+    return_code = result.returncode
+    assert_that(return_code, equal_to(0))

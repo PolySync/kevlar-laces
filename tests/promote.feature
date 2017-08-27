@@ -1,6 +1,5 @@
 Feature: Promote to master
 
-	@promote
 	Scenario: Promote branch to master
 		Given The repo exists
 		And The repo has a development branch ready to promote to master

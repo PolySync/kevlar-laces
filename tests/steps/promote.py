@@ -5,15 +5,16 @@ from hamcrest import *
 
 import subprocess
 import shlex
+import os
 
 @given('The repo has a development branch ready to promote to master')
 def step_impl(context):
-    context.tag = '0.0.0'
+    context.tag = '1.0.1'
 
 @when('I run the git-promote command from the command line')
 def step_impl(context):
-	command = 'git-promote 0.0.0-devel.101 master'
-	#command = "ls"
+	os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+	command = 'git promote 1.0.1-devel.2 master'
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
 	context.output = result.stdout.read()
@@ -22,6 +23,7 @@ def step_impl(context):
 @then('The branch should be merged into master')
 def step_impl(context):
 	merged = False
+	os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
 	command = "git reflog"
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
@@ -37,6 +39,7 @@ def step_impl(context):
 
 @then('The master branch should be tagged with the semver of the promoted branch')
 def step_impl(context):
+	os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
 	command = "git show {0}".format(context.tag)
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
