@@ -13,8 +13,7 @@ def step_impl(context):
 
 @when('I run the git-promote command from the command line')
 def step_impl(context):
-	os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-	command = 'git promote 1.0.1-devel.2 master'
+	command = 'git -C {0} promote 1.0.1-devel.2 master'.format(context.mock_developer_dir)
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
 	context.output = result.stdout.read()
@@ -23,8 +22,7 @@ def step_impl(context):
 @then('The branch should be merged into master')
 def step_impl(context):
 	merged = False
-	os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-	command = "git reflog"
+	command = "git -C {} reflog".format(context.mock_github_dir)
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
 	context.reflog = result.stdout.read()
@@ -39,8 +37,7 @@ def step_impl(context):
 
 @then('The master branch should be tagged with the semver of the promoted branch')
 def step_impl(context):
-	os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-	command = "git show {0}".format(context.tag)
+	command = "git -C {0} show {1}".format(context.mock_github_dir, context.tag)
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
 	context.tag_output = result.stdout.read()

@@ -7,7 +7,7 @@ TAG=${REQUESTING:0:INDEX-1}
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
-STASH_OUTPUT="$(git stash push)"
+STASH_OUTPUT="$(git stash save)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$STASH_OUTPUT"

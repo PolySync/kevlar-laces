@@ -6,82 +6,81 @@ from hamcrest import *
 import subprocess
 import shlex
 import os
+import tempfile
 
-
-@given('The repo exists')
-def step_impl(context):
-    pass
-
-@given('The repo has a PR that is ready to merge')
-def step_impl(context):
-    context.branch_name = 'devel'
-
-@when('I run the git-mergepr command from the command line')
-def step_impl(context):
-    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-    command = 'git mergepr devel master'
+def shell_command(command):
     args_list = shlex.split(command)
-    result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
-    context.output = result.stdout.read()
+    result = subprocess.Popen(args_list)
     result.wait()
 
-@when('I run the git-mergepr --no-prune command from the command line')
-def step_impl(context):
-    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-    command = 'git mergepr --no-prune devel master'
+def run_with_project_in_path(command):
+    env = os.environ
+    env['PATH'] = '{0}:{1}/..'.format(env['PATH'], os.getcwd())
+
     args_list = shlex.split(command)
-    result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
-    context.output = result.stdout.read()
+    result = subprocess.Popen(args_list, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = result.stdout.read() if result.stdout else None
+    stderr = result.stderr.read() if result.stderr else None
     result.wait()
+    return (stdout, stderr)
+
+@given('A local copy of the repo')
+def step_impl(context):
+    context.mock_developer_dir = tempfile.mkdtemp(prefix='kevlar')
+    shell_command('git -C {0} clone -q file:///{1} . '.format(context.mock_developer_dir, context.mock_github_dir))
+
+@given('The repo has a {branch} PR that is ready to merge')
+def step_impl(context, branch):
+    context.branch_name = branch
+
+@when('I run the git-mergepr command targeting {target}')
+def step_impl(context, target):
+    context.target_branch = target
+
+    command = 'git -C {0} mergepr {1} {2}'.format(context.mock_developer_dir, context.branch_name, target)
+
+    run_with_project_in_path(command)
+
+
+@when('I run the git-mergepr --no-prune command targeting {target}')
+def step_impl(context, target):
+    context.target_branch = target
+
+    command = 'git -C {0} mergepr --no-prune {1} {2}'.format(context.mock_developer_dir, context.branch_name, target)
+
+    run_with_project_in_path(command)
 
 @then('The PR should be merged')
 def step_impl(context):
-    merged = False
-    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-    command = "git reflog"
-    args_list = shlex.split(command)
-    result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
-    context.reflog = result.stdout.read()
-    result.wait()
-    log = context.reflog.splitlines()
-    log0 = log[1]
-    line = log0.split()
-    context.sha_hash = line[0]
-    if 'merge' in log0 and context.branch_name in log0:
-        merged = True
-    assert_that(merged, True)
+    command = "git -C {0} log --max-count=1 --parents --format=oneline {1}".format(context.mock_github_dir, context.target_branch)
+
+    log_output, unused = run_with_project_in_path(command)
+
+    fields = log_output.split()
+    context.sha_hash = fields[0]
+
+    assert_that(log_output, contains_string('Merge'))
+    assert_that(log_output, contains_string(context.branch_name))
 
 @then('The merge commit should be signed')
 def step_impl(context):
-    signed = False
-    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-    command = "git verify-commit {0}".format(context.sha_hash)
-    args_list = shlex.split(command)
-    result = subprocess.Popen(args_list, stderr=subprocess.PIPE)
-    context.verify = result.stderr.read()
-    if 'Signature made' in context.verify:
-        signed = True
-    result.wait()
-    assert_that(signed, True)
+    command = "git -C {0} verify-commit {1}".format(context.mock_github_dir, context.sha_hash)
+    unused, verify_output = run_with_project_in_path(command)
+
+    assert_that(verify_output, contains_string('Signature made'))
 
 @then("The PR's branch should be deleted from git")
 def step_impl(context):
-    deleted = False
-    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-    command = "git checkout devel"
+    command = "git -C {0} checkout {1}".format(context.mock_github_dir, context.branch_name)
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list)
-    result.communicate()
-    return_code = result.returncode
-    assert_that(return_code, equal_to(1))
+    result.wait()
+    assert_that(result.returncode, equal_to(1))
 
 @then("The PR's branch should still exist")
 def step_impl(context):
-    branch_present = False
-    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
-    command = "git checkout devel"
+    command = "git -C {0} checkout {1}".format(context.mock_github_dir, context.branch_name)
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list)
-    result.communicate()
-    return_code = result.returncode
-    assert_that(return_code, equal_to(0))
+    result.wait()
+    assert_that(result.returncode, equal_to(0))

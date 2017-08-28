@@ -15,21 +15,21 @@ fi
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
-STASH_OUTPUT="$(git stash push)"
+STASH_OUTPUT="$(git stash save)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$STASH_OUTPUT"
 	exit 1
 fi
 
-FETCH_OUTPUT="$(git fetch --prune)"
+FETCH_OUTPUT="$(git fetch -q --prune)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$FETCH_OUTPUT"
 	exit 1
 fi
 
-CHECKOUT_OUTPUT="$(git checkout $DESTINATION)"
+CHECKOUT_OUTPUT="$(git checkout -q $DESTINATION)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_OUTPUT"
@@ -43,7 +43,7 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-PUSH_OUTPUT="$(git push origin $DESTINATION)"
+PUSH_OUTPUT="$(git push -q origin $DESTINATION)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$PUSH_OUTPUT"
@@ -51,7 +51,7 @@ if [ $? != 0 ]; then
 fi
 
 if [ "$PRUNE_FLAG" = off ]; then
-	PUSH_EMPTY_BRANCH="$(git push origin :$REQUESTING)"
+	PUSH_EMPTY_BRANCH="$(git push -q origin :$REQUESTING)"
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$PUSH_EMPTY_BRANCH"
@@ -59,7 +59,7 @@ if [ "$PRUNE_FLAG" = off ]; then
 	fi
 fi
 
-CHECKOUT_ORIGINAL_OUTPUT="$(git checkout $CURRENT_BRANCH)"
+CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_ORIGINAL_OUTPUT"
