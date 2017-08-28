@@ -2,6 +2,9 @@
 
 from behave import *
 
+import tempfile
+import shutil
+
 import subprocess
 import shlex
 import os
@@ -19,19 +22,15 @@ def get_unique_number():
 
 def setup_environment(context):
 	context.original_working_dir = os.getcwd()
-	unique_number = get_unique_number()
-	context.mock_git_dir = 'mock_git_{0}'.format(unique_number)
+	context.mock_git_dir = tempfile.mkdtemp()
 	shell_command('git init {0}'.format(context.mock_git_dir))
-	os.chdir('{0}/{1}'.format(context.original_working_dir, context.mock_git_dir))
-	shell_command('cp -a /home/annie/work/tmp/test_repo_fixture/. .')
-	os.chdir(context.original_working_dir)
-	context.mock_dev_dir = 'mock_dev_{0}'.format(unique_number)
-	shell_command('mkdir {0}'.format(context.mock_dev_dir))
-	os.chdir('{0}/{1}'.format(context.original_working_dir, context.mock_dev_dir))
-	shell_command('git clone file://localhost/{0}/{1}'.format(context.original_working_dir, context.mock_git_dir))
-	os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+	shell_command('cp -a /home/annie/work/tmp/test_repo_fixture/. {0}'.format(context.mock_git_dir))
+	context.mock_dev_dir = tempfile.mkdtemp()
+	os.chdir('{0}'.format(context.mock_dev_dir))
+	shell_command('git clone file://localhost{0}'.format(context.mock_git_dir))
+	context.mock_git_dir_name = os.path.basename(context.mock_git_dir)
+	os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
 	shell_command('git fetch origin')
-
 
 def teardown_environment(context):
 	os.chdir(context.original_working_dir)

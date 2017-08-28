@@ -18,7 +18,7 @@ def step_impl(context):
 
 @when('I run the git-mergepr command from the command line')
 def step_impl(context):
-    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
     command = 'git mergepr devel master'
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
@@ -27,7 +27,7 @@ def step_impl(context):
 
 @when('I run the git-mergepr --no-prune command from the command line')
 def step_impl(context):
-    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
     command = 'git mergepr --no-prune devel master'
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
@@ -37,7 +37,7 @@ def step_impl(context):
 @then('The PR should be merged')
 def step_impl(context):
     merged = False
-    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
     command = "git reflog"
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
@@ -54,7 +54,7 @@ def step_impl(context):
 @then('The merge commit should be signed')
 def step_impl(context):
     signed = False
-    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
     command = "git verify-commit {0}".format(context.sha_hash)
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stderr=subprocess.PIPE)
@@ -67,7 +67,7 @@ def step_impl(context):
 @then("The PR's branch should be deleted from git")
 def step_impl(context):
     deleted = False
-    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
     command = "git checkout devel"
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list)
@@ -78,7 +78,7 @@ def step_impl(context):
 @then("The PR's branch should still exist")
 def step_impl(context):
     branch_present = False
-    os.chdir('{0}/{1}/{2}'.format(context.original_working_dir, context.mock_dev_dir, context.mock_git_dir))
+    os.chdir('{0}/{1}'.format(context.mock_dev_dir, context.mock_git_dir_name))
     command = "git checkout devel"
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list)
