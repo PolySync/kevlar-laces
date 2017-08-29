@@ -1,9 +1,10 @@
 #!/bin/bash
 
-REQUESTING=$1
+PRERELEASE_TAG=$1
+TARGET_BRANCH=$2
 
-INDEX=`expr index "$REQUESTING" -`
-TAG=${REQUESTING:0:INDEX-1}
+INDEX=`expr index "$PRERELEASE_TAG" -`
+RELEASE_TAG=${PRERELEASE_TAG:0:INDEX-1}
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
@@ -14,42 +15,42 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-FETCH_OUTPUT="$(git fetch)"
+FETCH_OUTPUT="$(git fetch -q --tags)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$FETCH_OUTPUT"
 	exit 1
 fi
 
-CHECKOUT_OUTPUT="$(git checkout master)"
+CHECKOUT_OUTPUT="$(git checkout -q $TARGET_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_OUTPUT"
 	exit 1
 fi
 
-FF_MASTER_OUTPUT="$(git merge --ff-only origin/master)"
+FF_MASTER_OUTPUT="$(git merge -q --ff-only origin/$TARGET_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$FF_MASTER_OUTPUT"
 	exit 1
 fi
 
-MERGE_OUTPUT="$(git merge -S --no-ff origin/devel)"
+MERGE_OUTPUT="$(git merge -q -S --no-ff $PRERELEASE_TAG)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$MERGE_OUTPUT"
 	exit 1
 fi
 
-TAG_OUTPUT="$(git tag -s $TAG -m $TAG)"
+TAG_OUTPUT="$(git tag -s $RELEASE_TAG -m $RELEASE_TAG)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$TAG_OUTPUT"
 	exit 1
 fi
 
-PUSH_OUTPUT="$(git push origin master --tags)"
+PUSH_OUTPUT="$(git push -q origin $TARGET_BRANCH --tags)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "TAG_OUTPUT"

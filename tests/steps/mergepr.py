@@ -24,10 +24,11 @@ def run_with_project_in_path(command):
     result.wait()
     return (stdout, stderr)
 
-@given('A local copy of the repo')
-def step_impl(context):
+@given('A local copy of the repo on the {branch} branch')
+def step_impl(context, branch):
     context.mock_developer_dir = tempfile.mkdtemp(prefix='kevlar')
-    shell_command('git -C {0} clone -q file:///{1} . '.format(context.mock_developer_dir, context.mock_github_dir))
+    shell_command('git -C {0} clone -q file:///{1} . -b {2}'.format(context.mock_developer_dir, context.mock_github_dir, branch))
+    shell_command('git -C {0} checkout -q {1}'.format(context.mock_developer_dir, branch))
 
 @given('The repo has a {branch} PR that is ready to merge')
 def step_impl(context, branch):
@@ -71,7 +72,7 @@ def step_impl(context):
 
 @then("The PR's branch should be deleted from git")
 def step_impl(context):
-    command = "git -C {0} checkout {1}".format(context.mock_github_dir, context.branch_name)
+    command = "git -C {0} checkout -q {1}".format(context.mock_github_dir, context.branch_name)
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list)
     result.wait()
@@ -79,7 +80,7 @@ def step_impl(context):
 
 @then("The PR's branch should still exist")
 def step_impl(context):
-    command = "git -C {0} checkout {1}".format(context.mock_github_dir, context.branch_name)
+    command = "git -C {0} checkout -q {1}".format(context.mock_github_dir, context.branch_name)
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list)
     result.wait()
