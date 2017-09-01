@@ -12,21 +12,21 @@ def step_impl(context):
 
 @given('The repo has a PR that is ready to merge')
 def step_impl(context):
-    context.branch_name = 'branch1'
+    context.branch_name = 'devel'
 
 @when('I run the git-mergepr command from the command line')
 def step_impl(context):
-    #command = 'git-mergepr bugfix/fix-all-yo-bugz devel'
-    command = "ls"
+    command = 'git-mergepr devel master'
+    #command = "ls"
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
     context.output = result.stdout.read()
     result.wait()
 
-@when('I run the git-mergepr --no-delete command from the command line')
+@when('I run the git-mergepr --no-prune command from the command line')
 def step_impl(context):
-    #command = 'git-mergepr --no-delete bugfix/fix-all-yo-bugz devel'
-    command = "ls"
+    command = 'git-mergepr --no-prune devel master'
+    #command = "ls"
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
     context.output = result.stdout.read()
@@ -41,7 +41,7 @@ def step_impl(context):
     context.reflog = result.stdout.read()
     result.wait()
     log = context.reflog.splitlines()
-    log0 = log[0]
+    log0 = log[1]
     line = log0.split()
     context.sha_hash = line[0]
     if 'merge' in log0 and context.branch_name in log0:
@@ -50,7 +50,6 @@ def step_impl(context):
 
 @then('The merge commit should be signed')
 def step_impl(context):
-    # git verify-commit <commit hash>
     signed = False
     command = "git verify-commit {0}".format(context.sha_hash)
     args_list = shlex.split(command)

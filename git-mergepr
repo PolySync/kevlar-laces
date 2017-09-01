@@ -43,7 +43,7 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-PUSH_OUTPUT="$(git push origin/$DESTINATION)"
+PUSH_OUTPUT="$(git push origin $DESTINATION)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$PUSH_OUTPUT"

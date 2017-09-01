@@ -12,8 +12,8 @@ def step_impl(context):
 
 @when('I run the git-promote command from the command line')
 def step_impl(context):
-	#command = 'git-promote 3.4.0-devel.101 master'
-	command = "ls"
+	command = 'git-promote 0.0.0-devel.101 master'
+	#command = "ls"
 	args_list = shlex.split(command)
 	result = subprocess.Popen(args_list, stdout=subprocess.PIPE)
 	context.output = result.stdout.read()
@@ -47,5 +47,5 @@ def step_impl(context):
 	for line in tag_data:
 		if 'commit' in line:
 			commit_data = line.split()
-			commit_hash = commit_data[1][:6]
+			commit_hash = commit_data[1][:7]
 	assert_that(commit_hash, equal_to(context.sha_hash))
