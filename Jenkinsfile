@@ -4,7 +4,6 @@ node('xenial') {
 	clean_checkout()
 	}
 	stage('Test') {
-	sh 'cd tests/'
 	sh 'behave'
 	}
 }

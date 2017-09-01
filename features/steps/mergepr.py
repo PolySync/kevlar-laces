@@ -15,14 +15,15 @@ def shell_command(command):
 
 def run_with_project_in_path(command):
     env = os.environ
-    env['PATH'] = '{0}:{1}/..'.format(env['PATH'], os.getcwd())
-
+    env['PATH'] = '{0}:{1}'.format(env['PATH'], os.getcwd())
+    env['GNUPGHOME'] = '{0}/features/keys/'.format(os.getcwd())
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = result.stdout.read() if result.stdout else None
     stderr = result.stderr.read() if result.stderr else None
     result.wait()
-    return (stdout, stderr)
+    return_code = result.returncode
+    return (stdout, stderr, return_code)
 
 @given('A local copy of the repo on the {branch} branch')
 def step_impl(context, branch):
@@ -36,11 +37,14 @@ def step_impl(context, branch):
 
 @when('I run the git-mergepr command targeting {target}')
 def step_impl(context, target):
-    context.target_branch = target
+    if target == 'a branch that does not exist':
+        context.target_branch = 'not_a_branch'
+    else:
+        context.target_branch = target
 
-    command = 'git -C {0} mergepr {1} {2}'.format(context.mock_developer_dir, context.branch_name, target)
+    command = 'git -C {0} mergepr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
 
-    run_with_project_in_path(command)
+    context.out, context.err, context.rc = run_with_project_in_path(command)
 
 
 @when('I run the git-mergepr --no-prune command targeting {target}')
@@ -51,11 +55,18 @@ def step_impl(context, target):
 
     run_with_project_in_path(command)
 
+@when('I run the git-mergepr command with a requesting branch that does not exist')
+def step_impl(context):
+    context.branch_name = 'not_a_branch'
+    context.target_branch = 'devel'
+    command = 'git -C {0} mergepr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
+    context.out, context.err, context.rc = run_with_project_in_path(command)
+
 @then('The PR should be merged')
 def step_impl(context):
     command = "git -C {0} log --max-count=1 --parents --format=oneline {1}".format(context.mock_github_dir, context.target_branch)
 
-    log_output, unused = run_with_project_in_path(command)
+    log_output, unused, rc = run_with_project_in_path(command)
 
     fields = log_output.split()
     context.sha_hash = fields[0]
@@ -66,7 +77,7 @@ def step_impl(context):
 @then('The merge commit should be signed')
 def step_impl(context):
     command = "git -C {0} verify-commit {1}".format(context.mock_github_dir, context.sha_hash)
-    unused, verify_output = run_with_project_in_path(command)
+    unused, verify_output, rc = run_with_project_in_path(command)
 
     assert_that(verify_output, contains_string('Signature made'))
 

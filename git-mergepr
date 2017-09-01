@@ -26,28 +26,28 @@ FETCH_OUTPUT="$(git fetch -q --prune)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$FETCH_OUTPUT"
-	exit 1
+	exit 2
 fi
 
 CHECKOUT_OUTPUT="$(git checkout -q $DESTINATION)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_OUTPUT"
-	exit 1
+	exit 3
 fi
 
 MERGE_OUTPUT="$(git merge -S --verify-signatures --no-ff origin/$REQUESTING)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$MERGE_OUTPUT"
-	exit 1
+	exit 4
 fi
 
 PUSH_OUTPUT="$(git push -q origin $DESTINATION)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$PUSH_OUTPUT"
-	exit 1
+	exit 5
 fi
 
 if [ "$PRUNE_FLAG" = off ]; then
@@ -55,7 +55,7 @@ if [ "$PRUNE_FLAG" = off ]; then
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$PUSH_EMPTY_BRANCH"
-		exit 1
+		exit 6
 	fi
 fi
 
@@ -63,7 +63,7 @@ CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_ORIGINAL_OUTPUT"
-	exit 1
+	exit 7
 fi
 
 if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
@@ -71,7 +71,7 @@ if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$POP_STASH"
-		exit 1
+		exit 8
 	fi
 fi
 
