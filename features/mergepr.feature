@@ -1,5 +1,6 @@
 Feature: Merge PR
 
+	@wip
 	Scenario: Merge and prune branch
 		Given A local copy of the repo on the master branch
 		And The repo has a feature PR that is ready to merge

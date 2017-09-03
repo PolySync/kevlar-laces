@@ -30,6 +30,7 @@ def step_impl(context, branch):
     context.mock_developer_dir = tempfile.mkdtemp(prefix='kevlar')
     shell_command('git -C {0} clone -q file:///{1} . -b {2}'.format(context.mock_developer_dir, context.mock_github_dir, branch))
     shell_command('git -C {0} checkout -q {1}'.format(context.mock_developer_dir, branch))
+    shell_command('git -C {0} config --local user.signingkey 794267AC'.format(context.mock_developer_dir))
 
 @given('The repo has a {branch} PR that is ready to merge')
 def step_impl(context, branch):

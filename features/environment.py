@@ -17,7 +17,9 @@ def shell_command(command):
     result.wait()
 
 def before_all(context):
-    pass
+    shell_command('gpgconf --kill gpg-agent')
+    shell_command('gpg-agent --daemon --allow-preset-passphrase --batch --homedir {0}/features/keys'.format(os.getcwd()))
+    shell_command('/usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase Iamatestkey 7251332279C83ED15745B9E71880F3E5794267AC')
 
 def before_feature(context, feature):
     pass
