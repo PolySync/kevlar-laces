@@ -6,6 +6,20 @@ This project contains a collection of custom git subcommands to help the Enginee
 
 It is so-named as a homage to the idea of trying to provide some defense against a predictable cavalcade of typical foot-guns.
 
+## Dependencies
+
+This tool suite is intended to be exercised from git, so naturall git is a
+prerequisite. Additionally, in order to sign commits and tags, you must also
+have gpg2.
+
+ * git
+ * gnupg2
+
+Running the tests will also require python, pip, and `behave`.
+
+ * apt install python python-pip
+ * pip install behave
+
 ## Installation
 
 Who knows... probably something to do with cloning the repo at a certain version into `~/.local/bin` or something like that.
@@ -44,9 +58,68 @@ git mergepr --no-prune bugfix/fix-all-yo-bugz devel
 
 ## Tests
 
+The behavior for each of the tools are specified in [Gherkin](https://cucumber.io/docs/reference)
+feature files. Each of the Given, When, Then steps for the feature files are
+implemented in using [Behave](https://pythonhosted.org/behave/tutorial.html).
+
+The features are laid out according to the expectations of users for this suite
+of tools (like `features/unique_error_codes.feature` or
+`features/replaces_work_in_progress.feature`) rather than a feature file for
+each of the tools in the suite. This encourages a uniform feel across the tool
+suite. Individual steps (Given, When, Then) should try to exercise commonality,
+but are free to isolate their steps in their own implementation files.
+
 ### Installing Dependencies
 
+In order to run the tests, you'll need behave, which in turn relies upon python.
+
+```
+$ apt install gnupg2 git python python-pip
+$ pip install behave
+
+```
+
 ### Running Tests
+
+The `Jenkinsfile` specifies how Jenkins will execute the tests; however, you may
+(and probably should) run the tests locally using `behave`.
+
+#### Running the entire test suite
+
+```
+$ behave
+...
+5 features passed, 0 failed, 0 skipped
+11 scenarios passed, 0 failed, 0 skipped
+55 steps passed, 0 failed, 0 skipped, 0 undefined
+Took 0m6.477s
+
+```
+
+#### Running a specific feature test
+
+```
+$ behave features/unique_error_codes.feature
+...
+1 feature passed, 0 failed, 0 skipped
+6 scenarios passed, 0 failed, 0 skipped
+27 steps passed, 0 failed, 0 skipped, 0 undefined
+Took 0m0.730s
+
+```
+
+#### Running the tests for a specific subcomponent
+
+```
+$ behave --tags promote -k
+...
+3 features passed, 0 failed, 2 skipped
+5 scenarios passed, 0 failed, 6 skipped
+25 steps passed, 0 failed, 30 skipped, 0 undefined
+Took 0m2.592s
+
+```
+
 
 # License
 
