@@ -1,9 +1,10 @@
 #!groovy
-node('xenial') {
+node('four') {
 	stage('Checkout') {
-	clean_checkout()
+	  clean_checkout()
 	}
 	stage('Test') {
-	sh 'behave'
+    sh 'gpg2 --version'
+	  sh 'behave -v -x --capture'
 	}
 }
