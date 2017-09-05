@@ -23,9 +23,9 @@ Feature: Merge PR
 		When I run the git-mergepr command with a requesting branch that does not exist
 		Then The script should fail with exit code 4
 
-	Scenario: Fail when there is a merge conflict
-		Given A local copy of the repo on the feature branch
-		And The repo has a feature PR that is ready to merge
-		And There is a merge conflict
-		When I run the git-mergepr command targeting devel
-		Then The script should fail with exit code 4
+	# Scenario: Fail when there is a merge conflict
+	# 	Given A local copy of the repo on the feature branch
+	# 	And The repo has a feature PR that is ready to merge
+	# 	And There is a merge conflict
+	# 	When I run the git-mergepr command targeting devel
+	# 	Then The script should fail with exit code 4
