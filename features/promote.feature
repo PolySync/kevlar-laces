@@ -1,16 +1,15 @@
 Feature: Promote to master
+  In order to ease the release workflow,
+  As a developer
+  I want to promote specific build tags to be a release
 
-	Scenario: Promote branch to master
-		Given A local copy of the repo on the master branch
-    	And The repo has prerelease tag 1.0.1-devel.2 to promote to master as 1.0.1
-		When I run the git-promote command from the command line
-		Then The tag should be merged
-		And The master branch should be tagged with the semver of the promoted branch
-		And The merge commit should be signed
+  @promote
+  Scenario: Promote branch to master
+    Given A local copy of the repo on the master branch
+    And The repo has prerelease tag 1.0.1-devel.2 to promote to master as 1.0.1
+    When I run the git-promote command from the command line
+    Then The tag should be merged
+    And The master branch should be tagged with the semver of the promoted branch
+    And The merge commit should be signed
 
-	Scenario: Fail when release tag already exists
-		Given a local copy of the repo on the master branch
-		And The repo has prerelease tag 1.0.0-devel.1 to promote to master as 1.0.0
-		And The 1.0.0 release tag already exists
-		When I run the git-promote command from the command line
-		Then The script should fail with exit code 6
+
