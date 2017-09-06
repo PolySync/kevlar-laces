@@ -24,7 +24,7 @@ def step_impl(context, release_tag):
     command = 'git -C {0} tag -s {1} -m {1}'.format(context.mock_github_dir, release_tag)
     utils.run_with_project_in_path(command, context)
 
-@given('My Yubikey is not inserted')
+@given('The GPG signing key is not available')
 def step_impl(context):
     command = 'git -C {0} config --local user.signingkey 00000000'.format(context.mock_developer_dir)
     utils.run_with_project_in_path(command, context)
@@ -66,3 +66,9 @@ def step_impl(context):
 
     file_size = os.path.getsize(str(context.diff_file))
     assert_that(file_size, equal_to(0))
+
+@then('The repo should be returned to the {branch} branch when I am done')
+def step_impl(context, branch):
+    out, err, rc = utils.run_with_project_in_path('git -C {0} branch'.format(context.mock_developer_dir), context)
+    assert_that(out, contains_string('feature'))
+

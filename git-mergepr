@@ -57,13 +57,19 @@ if [ "$PRUNE_FLAG" = off ]; then
 		echo "$PUSH_EMPTY_BRANCH"
 		exit 6
 	fi
+	DELETE_LOCAL_BRANCH="$(git branch -d $REQUESTING)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$DELETE_LOCAL_BRANCH"
+		exit 7
+	fi
 fi
 
 CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_ORIGINAL_OUTPUT"
-	exit 7
+	exit 8
 fi
 
 if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
@@ -71,7 +77,7 @@ if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$POP_STASH"
-		exit 8
+		exit 9
 	fi
 fi
 

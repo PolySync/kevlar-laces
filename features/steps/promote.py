@@ -16,20 +16,15 @@ def step_impl(context, prerelease, target, release):
     context.target = target
     context.tag = release
 
-
-@given('There is a merge conflict')
-def step_impl(context):
-    utils.shell_command('cp -a {0}/test_file.txt {1}/test_file.txt'.format(os.getcwd(), context.mock_developer_dir))
-
 @when('I run the git-promote command from the command line')
 def step_impl(context):
     command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, context.target)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
-@when('I run the git-promote command targeting a branch that does not exist')
-def step_impl(context):
-    nonexistent_target = 'not_a_branch'
-    command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, nonexistent_target)
+@when('I run the git-promote command targeting {branch}')
+def step_impl(context, branch):
+    target = branch
+    command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, target)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
 @then('The tag should be merged')
