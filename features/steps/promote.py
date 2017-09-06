@@ -39,7 +39,6 @@ def step_impl(context):
 @then('The master branch should be tagged with the semver of the promoted branch')
 def step_impl(context):
     command = "git -C {0} describe {1}".format(context.mock_github_dir, context.target)
-
     describe_output, unused, rc = utils.run_with_project_in_path(command, context)
     assert_that(describe_output, equal_to_ignoring_whitespace(context.tag))
 

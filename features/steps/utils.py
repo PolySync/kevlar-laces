@@ -19,8 +19,3 @@ def run_with_project_in_path(command, context):
     result.wait()
     return_code = result.returncode
     return (stdout, stderr, return_code)
-
-def pipe_stdout_to_file(command, out_file):
-    args_list = shlex.split(command)
-    result = subprocess.Popen(args_list, stdout=out_file, stderr=subprocess.PIPE)
-    result.wait()

@@ -59,7 +59,6 @@ def step_impl(context):
     assert_that(log_output, contains_string('Merge'))
     assert_that(log_output, contains_string(context.branch_name))
 
-
 @then("The {branch} branch should {existence} exist")
 def step_impl(context, branch, existence):
     command = "git -C {0} checkout -q {1}".format(context.mock_github_dir, branch)

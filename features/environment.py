@@ -39,10 +39,7 @@ def before_tag(context, tag):
     pass
 
 def after_tag(context, tag):
-    if tag == 'remove_temp_files':
-        shell_command('rm {0}'.format(context.pre_file))
-        shell_command('rm {0}'.format(context.post_file))
-        shell_command('rm {0}'.format(context.diff_file))
+    pass
 
 def after_step(context, step):
     pass
