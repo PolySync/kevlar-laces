@@ -43,7 +43,7 @@ def step_impl(context, target):
     command = 'git -C {0} mergepr --no-prune {1} {2}'.format(context.mock_developer_dir, context.branch_name, target)
     utils.run_with_project_in_path(command, context)
 
-@when('I run the git-mergepr command with a requesting branch that does not exist')
+@when('I run the git-mergepr command with a branch to be merged that does not exist')
 def step_impl(context):
     context.branch_name = 'not_a_branch'
     context.target_branch = 'devel'

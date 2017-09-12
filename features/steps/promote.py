@@ -23,8 +23,7 @@ def step_impl(context):
 
 @when('I run the git-promote command targeting {branch}')
 def step_impl(context, branch):
-    target = branch
-    command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, target)
+    command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, branch)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
 @then('The tag should be merged')

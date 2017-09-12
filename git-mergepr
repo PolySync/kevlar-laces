@@ -1,16 +1,16 @@
 #!/bin/bash
 
 PRUNE_FLAG=off
-REQUESTING=""
-DESTINATION=""
+BRANCH_TO_MERGE=""
+DESTINATION_BRANCH=""
 
 if [ "$1" = "--no-prune" ]; then
 	PRUNE_FLAG=on
-	REQUESTING="$2"
-	DESTINATION="$3"
+	BRANCH_TO_MERGE="$2"
+	DESTINATION_BRANCH="$3"
 else
-	REQUESTING="$1"
-	DESTINATION="$2"
+	BRANCH_TO_MERGE="$1"
+	DESTINATION_BRANCH="$2"
 fi
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
@@ -29,21 +29,21 @@ if [ $? != 0 ]; then
 	exit 2
 fi
 
-CHECKOUT_OUTPUT="$(git checkout -q $DESTINATION)"
+CHECKOUT_OUTPUT="$(git checkout -q $DESTINATION_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_OUTPUT"
 	exit 3
 fi
 
-MERGE_OUTPUT="$(git merge -S --verify-signatures --no-ff origin/$REQUESTING)"
+MERGE_OUTPUT="$(git merge -S --verify-signatures --no-ff origin/$BRANCH_TO_MERGE)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$MERGE_OUTPUT"
 	exit 4
 fi
 
-PUSH_OUTPUT="$(git push -q origin $DESTINATION)"
+PUSH_OUTPUT="$(git push -q origin $DESTINATION_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$PUSH_OUTPUT"
@@ -51,13 +51,13 @@ if [ $? != 0 ]; then
 fi
 
 if [ "$PRUNE_FLAG" = off ]; then
-	PUSH_EMPTY_BRANCH="$(git push -q origin :$REQUESTING)"
+	PUSH_EMPTY_BRANCH="$(git push -q origin :$BRANCH_TO_MERGE)"
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$PUSH_EMPTY_BRANCH"
 		exit 6
 	fi
-	DELETE_LOCAL_BRANCH="$(git branch -d $REQUESTING)"
+	DELETE_LOCAL_BRANCH="$(git branch -d $BRANCH_TO_MERGE)"
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$DELETE_LOCAL_BRANCH"

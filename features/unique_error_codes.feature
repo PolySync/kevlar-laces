@@ -4,10 +4,10 @@ Feature: Unique error codes for problematic situations
   I want to have a unique exit code for each situation
 
   @merge
-  Scenario: Fail when requesting branch does not exist
+  Scenario: Fail when the branch to be merged does not exist
     Given A local copy of the repo on the master branch
     And The repo has a feature PR that is ready to merge
-    When I run the git-mergepr command with a requesting branch that does not exist
+    When I run the git-mergepr command with a branch to be merged that does not exist
     Then The script should return 4
 
   @merge
