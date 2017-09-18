@@ -29,21 +29,22 @@ if [ $? != 0 ]; then
 	exit 2
 fi
 
-CHECKOUT_OUTPUT="$(git checkout -q $DESTINATION_BRANCH)"
+CHECKOUT_OUTPUT="$(git checkout -q --detach origin/$DESTINATION_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_OUTPUT"
 	exit 3
 fi
 
-MERGE_OUTPUT="$(git merge -S --verify-signatures --no-ff origin/$BRANCH_TO_MERGE)"
+MERGE_MESSAGE="Merge remote-tracking branch 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH"
+MERGE_OUTPUT=$(git merge -S --verify-signatures --no-ff -m "$MERGE_MESSAGE" origin/$BRANCH_TO_MERGE)
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$MERGE_OUTPUT"
 	exit 4
 fi
 
-PUSH_OUTPUT="$(git push -q origin $DESTINATION_BRANCH)"
+PUSH_OUTPUT="$(git push -q origin HEAD:$DESTINATION_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$PUSH_OUTPUT"
