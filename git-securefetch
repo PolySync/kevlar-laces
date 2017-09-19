@@ -192,7 +192,7 @@ function rsl_verify {
       fi
 
       HASH_1=`cat $LAST_PUSH_ENTRY|grep 'PREV_HASH:'|cut -d':' -f2`
-      HASH_2=`cat hash_file.tmp|shasum|cut -d' ' -f1`
+      HASH_2=`cat hash_file.tmp|sha512sum|cut -d' ' -f1`
 
       if [[ "$HASH_2" != "$HASH_1" && ! -z "$HASH_1" ]]
       then
