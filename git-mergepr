@@ -15,6 +15,33 @@ fi
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
+function unstash_changes() {
+	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+		POP_STASH="$(git stash pop)"
+		if [ $? != 0 ]; then
+			echo "ERROR:"
+			echo "$POP_STASH"
+			exit 9
+		fi
+	fi
+} 
+
+
+function restore_original_state() {
+	CLEAR_INDEX="$(git reset --hard HEAD)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$CLEAR_INDEX"
+	fi
+	CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$CHECKOUT_ORIGINAL_OUTPUT"
+	      	exit 8
+	fi
+	unstash_changes
+}
+
 STASH_OUTPUT="$(git stash save)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
@@ -26,6 +53,7 @@ FETCH_OUTPUT="$(git fetch -q --prune)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$FETCH_OUTPUT"
+	unstash_changes
 	exit 2
 fi
 
@@ -33,6 +61,7 @@ CHECKOUT_OUTPUT="$(git checkout -q --detach origin/$DESTINATION_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$CHECKOUT_OUTPUT"
+	unstash_changes
 	exit 3
 fi
 
@@ -41,6 +70,7 @@ MERGE_OUTPUT=$(git merge -S --verify-signatures --no-ff -m "$MERGE_MESSAGE" orig
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$MERGE_OUTPUT"
+	restore_original_state
 	exit 4
 fi
 
@@ -48,6 +78,7 @@ PUSH_OUTPUT="$(git push -q origin HEAD:$DESTINATION_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$PUSH_OUTPUT"
+	restore_original_state
 	exit 5
 fi
 
@@ -56,30 +87,18 @@ if [ "$PRUNE_FLAG" = off ]; then
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$PUSH_EMPTY_BRANCH"
+		restore_original_state
 		exit 6
 	fi
 	DELETE_LOCAL_BRANCH="$(git branch -d $BRANCH_TO_MERGE)"
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$DELETE_LOCAL_BRANCH"
+		restore_original_state
 		exit 7
 	fi
 fi
 
-CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$CHECKOUT_ORIGINAL_OUTPUT"
-	exit 8
-fi
-
-if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
-	POP_STASH="$(git stash pop)"
-	if [ $? != 0 ]; then
-		echo "ERROR:"
-		echo "$POP_STASH"
-		exit 9
-	fi
-fi
+restore_original_state
 
 exit 0
