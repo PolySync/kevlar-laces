@@ -2,7 +2,7 @@
 
 
 # Update this variable value with your GPG Key
-GPG_KEY="5FC58D0B"
+GPG_KEY=`git config user.signingkey`
 
 
 

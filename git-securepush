@@ -2,7 +2,7 @@
 
 
 # Update this variable value with your GPG Key
-GPG_KEY="5FC58D0B"
+GPG_KEY=`git config user.signingkey`
 
 
 #************** Functions ***********************************
@@ -10,9 +10,9 @@ GPG_KEY="5FC58D0B"
 #This function creates the bsl entries related to the push operation
 function update_bsl_push {
 
-	commits=`git log @{u}.. --pretty=format:"%H" 2>/dev/null || git rev-list $CURRENT_BRANCH` 
+	commits=`git log @{u}.. --pretty=format:"%H" 2>/dev/null || git rev-list $CURRENT_BRANCH`
 	git checkout -q bsl
-	
+
 	#Computing Hash for previous entries
 	BSL=$(ls -1|grep -v 'bsl.tmp' |wc -l)
 
@@ -72,7 +72,7 @@ function bsl_init {
 
 		#Set init variabe
 		init=1
-		commits=`git rev-list $CURRENT_BRANCH` 
+		commits=`git rev-list $CURRENT_BRANCH`
 		git checkout -q --orphan bsl
         git rm -qrf .
         echo "Related Commits" >bsl.tmp
@@ -108,7 +108,7 @@ function bsl_fetch {
     git merge -q
 }
 
-# This function will sign the bsl entries and commits the changes 
+# This function will sign the bsl entries and commits the changes
 function sign_bsl {
 
 		LAST_ENTRY=$(ls -1|grep -v 'bsl.tmp' |wc -l)
@@ -131,7 +131,7 @@ function push_bsl {
 
 		#Checking the status of BSL Push
 		status=$?
-		
+
 }
 
 #This funtion pushes the branch to server
@@ -154,9 +154,9 @@ function bsl_verify {
 		fi
 
 		#verify the signature on last enry
-		LAST_ENTRY=$(ls -lrt|wc -l) 
+		LAST_ENTRY=$(ls -lrt|wc -l)
 
-		
+
 
 
 		#Computing Hash for previous entries
@@ -164,7 +164,7 @@ function bsl_verify {
 
 		#Finding first push entry
 		for i in $(seq 1 $BSL)
-		do 
+		do
 		    if grep -q HEAD $i
     		then
     			#Update Last BSL push entry
@@ -192,7 +192,7 @@ function bsl_verify {
 
 	    if [ -f $LAST_PUSH_ENTRY ]
 	    then
-	    	gpg2 --default-key $GPG_KEY --verify $LAST_PUSH_ENTRY &> /dev/null 
+	    	gpg2 --default-key $GPG_KEY --verify $LAST_PUSH_ENTRY &> /dev/null
 	    	local status=$?
 			if [ $status -ne 0 ]
 			then
@@ -205,7 +205,7 @@ function bsl_verify {
 	    fi
 
 	    echo "****************************************************"
-		
+
 	    echo "******* Verifying the hash on new bsl push entries *******"
 	    #Hash Verification
 
@@ -224,7 +224,7 @@ function bsl_verify {
 		    		BSL=$(($BSL-1))
 		    	fi
 		    done
-		    
+
 			if [ -f $LAST_PUSH_ENTRY2 ]
 			then
 			    for i in $(seq $LAST_PUSH_ENTRY2 $(($LAST_PUSH_ENTRY-1)))
@@ -237,7 +237,7 @@ function bsl_verify {
 			    	cat $i >>hash_file.tmp
 			    done
 			fi
-					
+
 			HASH_1=`cat $LAST_PUSH_ENTRY|grep 'PREV_HASH:'|cut -d':' -f2`
 			HASH_2=`cat hash_file.tmp|shasum|cut -d' ' -f1`
 
@@ -251,12 +251,12 @@ function bsl_verify {
 				   	echo "Hash verification successful "
 			fi
 			rm hash_file.tmp
-			
+
 			if [[ $LAST_PUSH_ENTRY -eq $LAST_VERIFIED_PUSH_ENTRY || $LAST_PUSH_ENTRY -eq $FIRST_PUSH_ENTRY || -z $LAST_PUSH_ENTRY ]]
 			then
 				VERIFY=0
 			fi
-			
+
 			LAST_PUSH_ENTRY=$LAST_PUSH_ENTRY2
 			LAST_PUSH_ENTRY2=0
 
@@ -335,7 +335,7 @@ do
 	fi
 done
 
-	
+
 #Push current branch
 echo "Pushing the" $CURRENT_BRANCH "... "
 push_branch
