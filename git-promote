@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$#" -lt 2 ]; then
+	echo "usage: promote <tag> <release-branch>"
+	exit
+fi
+
 PRERELEASE_TAG=$1
 TARGET_BRANCH=$2
 
