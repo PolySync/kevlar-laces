@@ -219,7 +219,7 @@ function rsl_verify {
 
 
 #Get Current Brach
-CURRENT_BRANCH=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
 
 #check if we are pushing rsl branch
 if [ "$CURRENT_BRANCH" == "rsl" ]
