@@ -4,15 +4,6 @@ prune_flag=off
 src_branch=""
 dest_branch=""
 
-if [ "$1" = "--no-prune" ]; then
-	prune_flag=on
-	src_branch="$2"
-	dest_branch="$3"
-else
-	src_branch="$1"
-	dest_branch="$2"
-fi
-
 function exit_with_err() {
 	echo "Error performing operation. Exiting."
 	if [ $1 ]; then
@@ -21,6 +12,48 @@ function exit_with_err() {
 		exit 1
 	fi
 }
+
+function usage() {
+	echo "usage: mergepr [--no-prune] <src> <dest>"
+}
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+	usage
+	exit
+fi
+
+while :
+do
+	case "$1" in
+		-h | -help )
+			usage
+			exit 0
+			;;
+		--no-prune )
+			PRUNE_FLAG=on
+			shift
+			;;
+		-* )
+			usage
+			exit 0
+			;;
+		* )
+			if [ -z $BRANCH_TO_MERGE ]; then
+				BRANCH_TO_MERGE="$1"
+				shift
+			elif [ -z $DESTINATION_BRANCH ]; then
+				if [ -n "$1" ]; then
+					DESTINATION_BRANCH="$1"
+					shift
+				else
+					usage
+					exit 0
+				fi
+			else
+				break
+			fi
+	esac
+done
 
 current_branch="$(git symbolic-ref --short HEAD)"
 stash_output="$(git stash save)"
