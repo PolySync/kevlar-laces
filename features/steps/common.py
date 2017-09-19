@@ -32,6 +32,19 @@ def step_impl(context):
 def step_impl(context):
     utils.shell_command('cp -a {0}/features/test_file.txt {1}/test_file.txt'.format(os.getcwd(), context.mock_developer_dir))
 
+@given('The {branch} branch contains unsigned commits')
+def step_impl(context, branch):
+    utils.run_with_project_in_path('git -C {0} commit --allow-empty --no-gpg-sign -m "creating an unsigned commit"'.format(context.mock_developer_dir), context)
+
+@given('The {tag} tag is unsigned')
+def step_impl(context, tag):
+    utils.run_with_project_in_path('git -C {0} tag -a {1} -m {1}'.format(context.mock_developer_dir, tag), context)
+
+@given('The {tag} tag contains unsigned commits')
+def step_impl(context, tag):
+    utils.run_with_project_in_path('git -C {0} commit --allow-empty --no-gpg-sign -m "creating an unsigned commit"'.format(context.mock_developer_dir), context)
+    utils.run_with_project_in_path('git -C {0} tag -s {1} -m {1}'.format(context.mock_developer_dir, tag), context)
+
 @then('The script should return {exit_code}')
 def step_impl(context, exit_code):
     assert_that(context.rc, equal_to(int(exit_code)))
