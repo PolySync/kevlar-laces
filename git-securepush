@@ -14,7 +14,7 @@ function update_rsl_push {
   git checkout -q rsl
 
   #Computing Hash for previous entries
-  RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+  RSL=$(find_last_entry_number)
 
   #finding the last push entry
   while [ -f $RSL ]
@@ -30,7 +30,7 @@ function update_rsl_push {
     done
 
     #Caluculating the HASH
-    LAST_ENTRY=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+    LAST_ENTRY=$(find_last_entry_number)
     if [ -f $LAST_PUSH_ENTRY ]
     then
       for i in $(seq $LAST_PUSH_ENTRY $LAST_ENTRY)
@@ -56,10 +56,14 @@ function update_rsl_push {
   echo "PREV_HASH:"$HASH >>rsl.tmp
 }
 
+function find_last_entry_number {
+  echo $(find . -maxdepth 1 -type f | grep -v 'rsl.tmp' | wc -l)
+}
+
 #This function creates the rsl entries related to the fetch operation
 function update_rsl_fetch {
 
-    LAST_ENTRY=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+    LAST_ENTRY=$(find_last_entry_number)
     RSL=$(($LAST_ENTRY+1))
     echo `od -A n -t d -N 4 /dev/urandom` >$RSL
 
@@ -88,9 +92,9 @@ function rsl_init {
 function rsl_fetch {
 
   git fetch -q origin rsl
-    git checkout -q rsl
+  git checkout -q rsl
 
-    RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+  RSL=$(find_last_entry_number)
 
   #finding the last verified push entry
   while [ -f $RSL ]
@@ -111,7 +115,7 @@ function rsl_fetch {
 # This function will sign the rsl entries and commits the changes
 function sign_rsl {
 
-    LAST_ENTRY=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+  LAST_ENTRY=$(find_last_entry_number)
     RSL=$(($LAST_ENTRY+1))
     #Signthe rsl
     cat rsl.tmp |gpg --default-key $GPG_KEY --clearsign >$RSL
@@ -160,7 +164,7 @@ function rsl_verify {
 
 
     #Computing Hash for previous entries
-    RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+    RSL=$(find_last_entry_number)
 
     #Finding first push entry
     for i in $(seq 1 $RSL)
@@ -175,7 +179,7 @@ function rsl_verify {
         fi
       done
 
-      RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+      RSL=$(find_last_entry_number)
     #finding the last push entry
     while [ -f $RSL ]
     do
@@ -305,7 +309,7 @@ do
   rsl_fetch
   rsl_verify
 
-  RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+  RSL=$(find_last_entry_number)
   #finding the last push entry
   while [ -f $RSL ]
   do

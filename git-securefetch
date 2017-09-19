@@ -8,7 +8,7 @@ GPG_KEY=`git config user.signingkey`
 
 #This function creates the rsl entries related to the fetch operation
 function update_rsl_fetch {
-  LAST_ENTRY=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+  LAST_ENTRY=$(find_last_entry_number)
   RSL=$(($LAST_ENTRY+1))
   echo `od -A n -t u4 -N 4 /dev/urandom` > rsl.tmp
   xxd -r -p rsl.tmp>$RSL
@@ -44,13 +44,17 @@ function rsl_init {
 
 }
 
+function find_last_entry_number {
+  echo $(find . -maxdepth 1 -type f | grep -v 'rsl.tmp' | wc -l)
+}
+
 # This function fetches the rsl and related branch
 function rsl_fetch {
 
   git fetch -q origin rsl
-    git checkout -q rsl
+  git checkout -q rsl
 
-    RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+  RSL=$(find_last_entry_number)
 
   #finding the last verified push entry
   while [ -f $RSL ]
@@ -69,7 +73,7 @@ function rsl_fetch {
     #Fetch the current branch from server
     git fetch -q origin $CURRENT_BRANCH 2>/dev/null
 
-    RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+    RSL=$(find_last_entry_number)
 
     #Finding out the last Push entry
     while [ -f $RSL ]
@@ -111,7 +115,7 @@ function rsl_verify {
 
 
     #Computing Hash for previous entries
-    RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+    RSL=$(find_last_entry_number)
 
     #Finding first push entry
     for i in $(seq 1 $RSL)
@@ -126,7 +130,7 @@ function rsl_verify {
         fi
       done
 
-      RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+      RSL=$(find_last_entry_number)
     #finding the last push entry
     while [ -f $RSL ]
     do
@@ -263,7 +267,7 @@ do
   fi
 done
 
-RSL=$(ls -1|grep -v 'rsl.tmp' |wc -l)
+RSL=$(find_last_entry_number)
 #finding the last push entry
 while [ -f $RSL ]
 do
