@@ -75,7 +75,7 @@ In order to run the tests, you'll need behave, which in turn relies upon python.
 
 ```
 $ apt install gnupg2 git python python-pip
-$ pip install behave
+$ pip install behave pyhamcrest
 
 ```
 
