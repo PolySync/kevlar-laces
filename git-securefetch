@@ -1,0 +1,294 @@
+#!/bin/bash
+
+
+# Update this variable value with your GPG Key
+GPG_KEY="5FC58D0B"
+
+
+
+#************** Functions ***********************************
+
+#This function creates the bsl entries related to the fetch operation
+function update_bsl_fetch {
+		LAST_ENTRY=$(ls -1|grep -v 'bsl.tmp' |wc -l)
+		BSL=$(($LAST_ENTRY+1))
+		echo `od -A n -t u4 -N 4 /dev/urandom` > bsl.tmp
+		xxd -r -p bsl.tmp>$BSL
+
+		rm bsl.tmp
+		# Commit the new BSL
+		git add $BSL
+		git commit -S -qm "Adding the fetch entry at BSL"
+
+
+}
+
+#This function pushes the bsl branch to server
+function push_bsl {
+		git push -q --set-upstream origin bsl 2>/dev/null
+		#Checking the status of BSL Push
+		status=$?
+
+}
+
+
+#This function intializes the bsl branch and creates bsl file intial entries
+function bsl_init {
+
+		#Set init variabe
+		init=1
+		git checkout -q --orphan bsl
+        git rm -qrf .
+        echo `od -A n -t d -N 4 /dev/urandom` > bsl.tmp
+        xxd -r -p bsl.tmp>1
+
+        rm bsl.tmp
+        # Commit the new BSL
+		git add 1
+		git commit -S -qm "Commiting the changes at BSL"
+
+}
+
+# This function fetches the bsl and related branch
+function bsl_fetch {
+
+	git fetch -q origin bsl
+    git checkout -q bsl
+
+    BSL=$(ls -1|grep -v 'bsl.tmp' |wc -l)
+
+	#finding the last verified push entry
+	while [ -f $BSL ]
+	do
+		if grep -q HEAD $BSL
+    	then
+    		#Update Last BSL push entry
+    		LAST_VERIFIED_PUSH_ENTRY=$BSL
+    		break
+    	else
+    		BSL=$(($BSL-1))
+    	fi
+    done
+    git merge -q
+
+    #Fetch the current branch from server
+    git fetch -q origin $CURRENT_BRANCH 2>/dev/null
+
+    BSL=$(ls -1|grep -v 'bsl.tmp' |wc -l)
+
+    #Finding out the last Push entry
+    while [ -f $BSL ]
+    do
+    	if grep -q HEAD $BSL
+    	then
+    		#Get the branch head from the bsl
+    		BSL_BRANCH_HEAD=`cat $BSL |grep HEAD |tail -1|cut -d':' -f2`
+    		break
+    	else
+    		BSL=$(($BSL-1))
+    	fi
+    done
+
+    #Get the FETCH_HEAD
+    cat .git/FETCH_HEAD
+    FETCH_HEAD=`cat .git/FETCH_HEAD |grep $CURRENT_BRANCH |cut -f1`
+
+    #Verify the branch head in BSL matches with the FETCH_HEAD
+    if  [ "$BSL_BRANCH_HEAD" != "$FETCH_HEAD" ]
+    then
+    	fetch_status=1
+    else
+    	fetch_status=0
+    fi
+}
+
+#This function verifies the bsl file
+function bsl_verify {
+
+		git checkout -q bsl
+		if git diff $BSL_PREV_HEAD HEAD --stat|grep -q 'deletion'
+		then
+		    echo "BSL file corrupted"
+		fi
+
+		#verify the signature on last enry
+		LAST_ENTRY=$(ls -lrt|wc -l)
+
+
+		#Computing Hash for previous entries
+		BSL=$(ls -1|grep -v 'bsl.tmp' |wc -l)
+
+		#Finding first push entry
+		for i in $(seq 1 $BSL)
+		do
+		    if grep -q HEAD $i
+    		then
+    			#Update Last BSL push entry
+    			FIRST_PUSH_ENTRY=$i
+    			break
+	    	else
+	    		BSL=$(($i+1))
+	    	fi
+	    done
+
+	    BSL=$(ls -1|grep -v 'bsl.tmp' |wc -l)
+		#finding the last push entry
+		while [ -f $BSL ]
+		do
+			if grep -q HEAD $BSL
+    		then
+    			#Update Last BSL push entry
+    			LAST_PUSH_ENTRY=$BSL
+    			break
+	    	else
+	    		BSL=$(($BSL-1))
+	    	fi
+	    done
+
+
+	    echo "******* Verifying the sign on last bsl entry *******"
+
+	    if [ -f $LAST_PUSH_ENTRY ]
+	    then
+	    	gpg2 --default-key $GPG_KEY --verify $LAST_PUSH_ENTRY &> /dev/null
+	    	local status=$?
+			if [ $status -ne 0 ]
+			then
+				echo "Signature verification on last push entry is failed"
+			else
+				echo "Signature verification on last push entry is successful"
+			fi
+	    else
+	    	echo "There is no BSL push entry exist before. No need of signature verification"
+	    fi
+
+	    echo "****************************************************"
+
+	    echo "******* Verifying the hash on new bsl push entries *******"
+	    #Hash Verification
+
+	    VERIFY=1
+	    while [ $VERIFY -eq 1 ]
+	    do
+			BSL=$(($LAST_PUSH_ENTRY-1))
+			while [ -f $BSL ]
+			do
+				if grep -q HEAD $BSL
+	    		then
+	    			#Update Last BSL push entry
+	    			LAST_PUSH_ENTRY2=$BSL
+	    			break
+		    	else
+		    		BSL=$(($BSL-1))
+		    	fi
+		    done
+
+			if [ -f $LAST_PUSH_ENTRY2 ]
+			then
+			    for i in $(seq $LAST_PUSH_ENTRY2 $(($LAST_PUSH_ENTRY-1)))
+			    do
+			    	cat $i >>hash_file.tmp
+			    done
+			else
+			    for i in $(seq 1 $(($LAST_PUSH_ENTRY-1)))
+			    do
+			    	cat $i >>hash_file.tmp
+			    done
+			fi
+
+			HASH_1=`cat $LAST_PUSH_ENTRY|grep 'PREV_HASH:'|cut -d':' -f2`
+			HASH_2=`cat hash_file.tmp|shasum|cut -d' ' -f1`
+
+			if [[ "$HASH_2" != "$HASH_1" && ! -z "$HASH_1" ]]
+			then
+				    echo "Hash verfication on the following entry failed"
+				    echo "HASH_1:"$HASH_1 "  HASH_2":$HASH_2
+				    echo `cat hash_file.tmp`
+				    exit 1
+			else
+				   	echo "Hash verification successful "
+			fi
+			rm hash_file.tmp
+
+			if [[  $LAST_PUSH_ENTRY -eq $LAST_VERIFIED_PUSH_ENTRY || $LAST_PUSH_ENTRY -eq $FIRST_PUSH_ENTRY || -z $LAST_PUSH_ENTRY ]]
+			then
+			 		VERIFY=0
+			fi
+			LAST_PUSH_ENTRY=$LAST_PUSH_ENTRY2
+			LAST_PUSH_ENTRY2=0
+		done
+
+}
+
+#************************************************************************************
+
+
+#Get Current Brach
+CURRENT_BRANCH=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+#check if we are pushing bsl branch
+if [ "$CURRENT_BRANCH" == "bsl" ]
+then
+    exit 0
+fi
+
+status=1
+# Repeat the following steps until bsl push is successful
+while [ $status -ne 0 ]
+do
+	#Fetch BSL
+	if  [[ $(git branch -a |grep 'remotes/origin/bsl') ]]
+	then
+
+		fetch_status=1
+		while [ $fetch_status -ne 0 ]
+		do
+			#fetch the BSL branch and current branch
+			echo "Fetching the bsl ..."
+			bsl_fetch
+		done
+
+		# Update the BSL file
+		echo "Updating the bsl ..."
+		update_bsl_fetch
+	else
+		# BSL branch Intialization
+		echo "Intializing the bsl ..."
+		bsl_init
+
+	fi
+
+	#Pushing the BSL
+	echo "Pushing the bsl ... "
+	push_bsl
+	if [ $status -ne 0 ]
+	then
+		echo "bsl push failed !!"
+		git reset --hard origin/bsl
+	fi
+done
+
+BSL=$(ls -1|grep -v 'bsl.tmp' |wc -l)
+#finding the last push entry
+while [ -f $BSL ]
+do
+	if grep -q HEAD $BSL
+    then
+    	#Update Last BSL push entry
+    	LAST_PUSH_ENTRY=$BSL
+    	break
+	else
+	    BSL=$(($BSL-1))
+	fi
+done
+
+if [[ $LAST_VERIFIED_PUSH_ENTRY -eq 1 || -z "$LAST_VERIFIED_PUSH_ENTRY" || $LAST_PUSH_ENTRY -eq $LAST_VERIFIED_PUSH_ENTRY ]]
+then
+	echo "No verification required"
+else
+	bsl_verify
+fi
+
+#Switch back to current branch
+git checkout -q $CURRENT_BRANCH
+
