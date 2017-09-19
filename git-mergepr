@@ -30,7 +30,7 @@ git checkout -q --detach origin/$dest_branch || exit_with_err 3
 
 merge_message="Merge remote-tracking branch 'origin/$src_branch' into $dest_branch"
 
-git merge -S --verify-signatures --no-ff -m "$merge_message" origin/$src_branch || exit_with_err 4
+git merge -S --no-ff -m "$merge_message" origin/$src_branch || exit_with_err 4
 git push -q origin HEAD:$dest_branch
 
 if [ "$prune_flag" = off ]; then
