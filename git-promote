@@ -1,37 +1,81 @@
 #!/bin/bash
 
-prerelease_tag=$1
-target_branch=$2
+PRERELEASE_TAG=$1
+TARGET_BRANCH=$2
 
-index=`expr index "$prerelease_tag" -`
-release_tag=${prerelease_tag:0:index-1}
+INDEX=`expr index "$PRERELEASE_TAG" -`
+RELEASE_TAG=${PRERELEASE_TAG:0:INDEX-1}
+
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
+
+STASH_OUTPUT=''
 
 function unstash_changes()
 {
-	if [ "$stash_output" != "No local changes to save" ]; then
-		git stash pop || exit_with_err
+	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+		POP_STASH="$(git stash pop)"
+		if [ $? != 0 ]; then
+			echo "ERROR:"
+			echo "$POP_STASH"
+			exit 8
+		fi
 	fi
 }
 
-function exit_with_err() {
-	echo "Error performing operation. Exiting."
+STASH_OUTPUT="$(git stash save)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$STASH_OUTPUT"
+	exit 1
+fi
+
+FETCH_OUTPUT="$(git fetch -q --tags)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$FETCH_OUTPUT"
 	unstash_changes
-	if [ $1 ]; then
-		exit $1
-	else
-		exit 1
-	fi
-}
+	exit 2
+fi
 
-current_branch="$(git symbolic-ref --short HEAD)"
-stash_output="$(git stash save)"
+CHECKOUT_OUTPUT="$(git checkout -q $TARGET_BRANCH)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "Your target branch does not appear to exist"
+	unstash_changes
+	exit 3
+fi
 
-git fetch -q --tags || exit_with_err
-git checkout -q $target_branch || exit_with_err 3
-git merge -q --ff-only origin/$target_branch || exit_with_err 4
-git merge -q -S --no-ff $prerelease_tag || exit_with_err 5
-git tag -s $release_tag -m $release_tag || exit_with_err 6
-git push -q origin $target_branch --tags || exit_with_err
+FF_MASTER_OUTPUT="$(git merge -q --ff-only origin/$TARGET_BRANCH)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$FF_MASTER_OUTPUT"
+	unstash_changes
+	exit 4
+fi
+
+MERGE_OUTPUT="$(git merge -q -S --no-ff $PRERELEASE_TAG)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$MERGE_OUTPUT"
+	unstash_changes
+	exit 5
+fi
+
+TAG_OUTPUT="$(git tag -s $RELEASE_TAG -m $RELEASE_TAG)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$TAG_OUTPUT"
+	unstash_changes
+	exit 6
+fi
+
+PUSH_OUTPUT="$(git push -q origin $TARGET_BRANCH --tags)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "TAG_OUTPUT"
+	unstash_changes
+	exit 7
+fi
 
 unstash_changes
 

@@ -1,47 +1,85 @@
 #!/bin/bash
 
-prune_flag=off
-src_branch=""
-dest_branch=""
+PRUNE_FLAG=off
+BRANCH_TO_MERGE=""
+DESTINATION_BRANCH=""
 
 if [ "$1" = "--no-prune" ]; then
-	prune_flag=on
-	src_branch="$2"
-	dest_branch="$3"
+	PRUNE_FLAG=on
+	BRANCH_TO_MERGE="$2"
+	DESTINATION_BRANCH="$3"
 else
-	src_branch="$1"
-	dest_branch="$2"
+	BRANCH_TO_MERGE="$1"
+	DESTINATION_BRANCH="$2"
 fi
 
-function exit_with_err() {
-	echo "Error performing operation. Exiting."
-	if [ $1 ]; then
-		exit $1
-	else
-		exit 1
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
+
+STASH_OUTPUT="$(git stash save)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$STASH_OUTPUT"
+	exit 1
+fi
+
+FETCH_OUTPUT="$(git fetch -q --prune)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$FETCH_OUTPUT"
+	exit 2
+fi
+
+CHECKOUT_OUTPUT="$(git checkout -q --detach origin/$DESTINATION_BRANCH)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$CHECKOUT_OUTPUT"
+	exit 3
+fi
+
+MERGE_MESSAGE="Merge remote-tracking branch 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH"
+MERGE_OUTPUT=$(git merge -S --no-ff -m "$MERGE_MESSAGE" origin/$BRANCH_TO_MERGE)
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$MERGE_OUTPUT"
+	exit 4
+fi
+
+PUSH_OUTPUT="$(git push -q origin HEAD:$DESTINATION_BRANCH)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$PUSH_OUTPUT"
+	exit 5
+fi
+
+if [ "$PRUNE_FLAG" = off ]; then
+	PUSH_EMPTY_BRANCH="$(git push -q origin :$BRANCH_TO_MERGE)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$PUSH_EMPTY_BRANCH"
+		exit 6
 	fi
-}
-
-current_branch="$(git symbolic-ref --short HEAD)"
-stash_output="$(git stash save)"
-
-git fetch -q --prune || exit_with_err
-git checkout -q --detach origin/$dest_branch || exit_with_err 3
-
-merge_message="Merge remote-tracking branch 'origin/$src_branch' into $dest_branch"
-
-git merge -S --no-ff -m "$merge_message" origin/$src_branch || exit_with_err 4
-git push -q origin HEAD:$dest_branch
-
-if [ "$prune_flag" = off ]; then
-	git push -q origin :$src_branch || exit_with_err
-	git branch -d $src_branch || exit_with_err
+	DELETE_LOCAL_BRANCH="$(git branch -d $BRANCH_TO_MERGE)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$DELETE_LOCAL_BRANCH"
+		exit 7
+	fi
 fi
 
-git checkout -q $current_branch || exit_with_err 8
+CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
+if [ $? != 0 ]; then
+	echo "ERROR:"
+	echo "$CHECKOUT_ORIGINAL_OUTPUT"
+	exit 8
+fi
 
-if [ "$stash_output" != "No local changes to save" ]; then
-	git stash pop || exit_with_err
+if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+	POP_STASH="$(git stash pop)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$POP_STASH"
+		exit 9
+	fi
 fi
 
 exit 0
