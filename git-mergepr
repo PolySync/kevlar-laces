@@ -30,7 +30,7 @@ do
 			exit 0
 			;;
 		--no-prune )
-			PRUNE_FLAG=on
+			prune_flag=on
 			shift
 			;;
 		-* )
@@ -38,12 +38,12 @@ do
 			exit 0
 			;;
 		* )
-			if [ -z $BRANCH_TO_MERGE ]; then
-				BRANCH_TO_MERGE="$1"
+			if [ -z $src_branch ]; then
+				src_branch="$1"
 				shift
-			elif [ -z $DESTINATION_BRANCH ]; then
+			elif [ -z $dest_branch ]; then
 				if [ -n "$1" ]; then
-					DESTINATION_BRANCH="$1"
+					dest_branch="$1"
 					shift
 				else
 					usage
