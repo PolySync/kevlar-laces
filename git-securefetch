@@ -10,10 +10,8 @@ GPG_KEY=`git config user.signingkey`
 function update_rsl_fetch {
   LAST_ENTRY=$(find_last_entry_number)
   RSL=$(($LAST_ENTRY+1))
-  echo `od -A n -t u4 -N 4 /dev/urandom` > rsl.tmp
-  xxd -r -p rsl.tmp>$RSL
+  od -A n -t u4 -N 4 /dev/urandom | xxd -r -p >$RSL
 
-  rm rsl.tmp
   # Commit the new RSL
   git add $RSL
   git commit -S -m "Adding the fetch entry at RSL"
@@ -34,10 +32,8 @@ function rsl_init {
   init=1
   git checkout -q --orphan rsl
   git rm -qrf .
-  echo `od -A n -t d -N 4 /dev/urandom` > rsl.tmp
-  xxd -r -p rsl.tmp>1
+  od -A n -t u4 -N 4 /dev/urandom | xxd -r -p >1
 
-  rm rsl.tmp
   # Commit the new RSL
   git add 1
   git commit -S -qm "Commiting the changes at RSL"
