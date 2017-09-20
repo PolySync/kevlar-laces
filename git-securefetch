@@ -10,7 +10,7 @@ GPG_KEY=`git config user.signingkey`
 function update_rsl_fetch {
   LAST_ENTRY=$(find_last_entry_number)
   RSL=$(($LAST_ENTRY+1))
-  od -A n -t u4 -N 4 /dev/urandom | xxd -r -p >$RSL
+  dd if=/dev/random bs=16 count=1 of=$RSL
 
   # Commit the new RSL
   git add $RSL
@@ -32,7 +32,7 @@ function rsl_init {
   init=1
   git checkout -q --orphan rsl
   git rm -qrf .
-  od -A n -t u4 -N 4 /dev/urandom | xxd -r -p >1
+  dd if=/dev/random bs=16 count=1 of=1
 
   # Commit the new RSL
   git add 1
