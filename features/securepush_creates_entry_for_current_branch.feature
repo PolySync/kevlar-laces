@@ -17,3 +17,12 @@ Feature: Securepush creates a push entry
     When I run git-securepush
     Then The latest RSL entry should be a push entry
     And The latest RSL entry should contain Branch:feature2
+
+  @securepush
+  Scenario: Push entry for not-current branch on RSL branch
+    Given A local copy of the repo on the feature branch
+    And I create a new feature2 branch
+    And I create a new feature3 branch
+    When I run git-securepush feature2
+    Then The latest RSL entry should be a push entry
+    And The latest RSL entry should contain Branch:feature2

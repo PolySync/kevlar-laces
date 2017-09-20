@@ -78,11 +78,11 @@ function rsl_init {
     init=1
     commits=`git rev-list $CURRENT_BRANCH`
     git checkout -q --orphan rsl
-        git rm -qrf .
-        echo "Related Commits" >rsl.tmp
+    git rm -qrf .
+    echo "Related Commits" >rsl.tmp
     echo $commits >>rsl.tmp
-        echo "Branch:"$CURRENT_BRANCH >>rsl.tmp
-        HEAD_HASH=`git rev-parse $CURRENT_BRANCH`
+    echo "Branch:"$CURRENT_BRANCH >>rsl.tmp
+    HEAD_HASH=`git rev-parse $CURRENT_BRANCH`
     echo "HEAD":$HEAD_HASH >>rsl.tmp
     echo "PREV_HASH:"$HASH >>rsl.tmp
 }
@@ -116,25 +116,25 @@ function rsl_fetch {
 function sign_rsl {
 
   LAST_ENTRY=$(find_last_entry_number)
-    RSL=$(($LAST_ENTRY+1))
-    #Signthe rsl
-    cat rsl.tmp |gpg2 --default-key $GPG_KEY --clearsign >$RSL
+  RSL=$(($LAST_ENTRY+1))
+  #Signthe rsl
+  cat rsl.tmp |gpg2 --default-key $GPG_KEY --clearsign >$RSL
 
-    #Remove temp file
-    rm rsl.tmp
+  #Remove temp file
+  rm rsl.tmp
 
-    # Commit the new RSL
-    git add $RSL
-    git commit -S -qm "Adding the push entry at RSL"
+  # Commit the new RSL
+  git add $RSL
+  git commit -S -qm "Adding the push entry at RSL"
 }
 
 #This function pushes the rsl branch to server
 function push_rsl {
 
-    git push -q --set-upstream origin rsl 2>/dev/null
+  git push -q --set-upstream origin rsl 2>/dev/null
 
-    #Checking the status of RSL Push
-    status=$?
+  #Checking the status of RSL Push
+  status=$?
 
 }
 
@@ -161,85 +161,83 @@ function rsl_verify {
     LAST_ENTRY=$(ls -lrt|wc -l)
 
 
-
-
     #Computing Hash for previous entries
     RSL=$(find_last_entry_number)
 
     #Finding first push entry
     for i in $(seq 1 $RSL)
     do
-        if grep -q HEAD $i
-        then
-          #Update Last RSL push entry
-          FIRST_PUSH_ENTRY=$i
-          break
-        else
-          RSL=$(($i+1))
-        fi
-      done
+      if grep -q HEAD $i
+      then
+        #Update Last RSL push entry
+        FIRST_PUSH_ENTRY=$i
+        break
+      else
+        RSL=$(($i+1))
+      fi
+    done
 
-      RSL=$(find_last_entry_number)
+    RSL=$(find_last_entry_number)
     #finding the last push entry
     while [ -f $RSL ]
     do
       if grep -q HEAD $RSL
-        then
-          #Update Last RSL push entry
-          LAST_PUSH_ENTRY=$RSL
-          break
-        else
-          RSL=$(($RSL-1))
-        fi
-      done
-      echo "******* Verifying the sign on last rsl entry *******"
-
-      if [ -f $LAST_PUSH_ENTRY ]
       then
-        gpg2 --default-key $GPG_KEY --verify $LAST_PUSH_ENTRY &> /dev/null
-        local status=$?
+        #Update Last RSL push entry
+        LAST_PUSH_ENTRY=$RSL
+        break
+      else
+        RSL=$(($RSL-1))
+      fi
+    done
+    echo "******* Verifying the sign on last rsl entry *******"
+
+    if [ -f $LAST_PUSH_ENTRY ]
+    then
+      gpg2 --default-key $GPG_KEY --verify $LAST_PUSH_ENTRY &> /dev/null
+      local status=$?
       if [ $status -ne 0 ]
       then
         echo "Signature verification on last push entry is failed"
       else
         echo "Signature verification on last push entry is successful"
       fi
-      else
-        echo "There is no RSL push entry exist before. No need of signature verification"
-      fi
+    else
+      echo "There is no RSL push entry exist before. No need of signature verification"
+    fi
 
-      echo "****************************************************"
+    echo "****************************************************"
 
-      echo "******* Verifying the hash on new rsl push entries *******"
-      #Hash Verification
+    echo "******* Verifying the hash on new rsl push entries *******"
+    #Hash Verification
 
-      VERIFY=1
-      while [ $VERIFY -eq 1 ]
-      do
+    VERIFY=1
+    while [ $VERIFY -eq 1 ]
+    do
       RSL=$(($LAST_PUSH_ENTRY-1))
       while [ -f $RSL ]
       do
         if grep -q HEAD $RSL
-          then
-            #Update Last RSL push entry
-            LAST_PUSH_ENTRY2=$RSL
-            break
-          else
-            RSL=$(($RSL-1))
-          fi
-        done
+        then
+          #Update Last RSL push entry
+          LAST_PUSH_ENTRY2=$RSL
+          break
+        else
+          RSL=$(($RSL-1))
+        fi
+      done
 
       if [ -f $LAST_PUSH_ENTRY2 ]
       then
-          for i in $(seq $LAST_PUSH_ENTRY2 $(($LAST_PUSH_ENTRY-1)))
-          do
-            cat $i >>hash_file.tmp
-          done
+        for i in $(seq $LAST_PUSH_ENTRY2 $(($LAST_PUSH_ENTRY-1)))
+        do
+          cat $i >>hash_file.tmp
+        done
       else
-          for i in $(seq 1 $(($LAST_PUSH_ENTRY-1)))
-          do
-            cat $i >>hash_file.tmp
-          done
+        for i in $(seq 1 $(($LAST_PUSH_ENTRY-1)))
+        do
+          cat $i >>hash_file.tmp
+        done
       fi
 
       HASH_1=`cat $LAST_PUSH_ENTRY|grep 'PREV_HASH:'|cut -d':' -f2`
@@ -247,12 +245,12 @@ function rsl_verify {
 
       if [[ "$HASH_2" != "$HASH_1" && ! -z "$HASH_1" ]]
       then
-            echo "Hash verfication on the following entry failed"
-            echo "HASH_1:"$HASH_1 "  HASH_2":$HASH_2
-            echo `cat hash_file.tmp`
-            exit 1
+        echo "Hash verfication on the following entry failed"
+        echo "HASH_1:"$HASH_1 "  HASH_2":$HASH_2
+        echo `cat hash_file.tmp`
+        exit 1
       else
-            echo "Hash verification successful "
+        echo "Hash verification successful "
       fi
       rm hash_file.tmp
 
@@ -274,12 +272,18 @@ function rsl_verify {
 
 
 #Get Current Brach
-CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
+if [[ -z $1 ]]
+then
+  CURRENT_BRANCH=$PRIOR_BRANCH
+else
+  CURRENT_BRANCH=$1
+fi
 
 #check if we are pushing rsl branch
 if [ "$CURRENT_BRANCH" == "rsl" ]
 then
-    exit 0
+  exit 0
 fi
 
 
@@ -333,8 +337,8 @@ do
     echo "Pushing the rsl"
     push_rsl
   else
-    echo $CURRENT_BRANCH "Cann't be pushed to remote. Please fetch an merge the changes then retry the fetch"
-    git checkout -q $CURRENT_BRANCH
+    echo $CURRENT_BRANCH "Can't be pushed to remote. Please fetch and merge the changes then retry the fetch"
+    git checkout -q $PRIOR_BRANCH
     exit 1
   fi
 done
@@ -344,5 +348,4 @@ done
 echo "Pushing the" $CURRENT_BRANCH "... "
 push_branch
 
-
-
+git checkout -q $PRIOR_BRANCH
