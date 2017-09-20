@@ -118,7 +118,7 @@ function sign_rsl {
   LAST_ENTRY=$(find_last_entry_number)
     RSL=$(($LAST_ENTRY+1))
     #Signthe rsl
-    cat rsl.tmp |gpg --default-key $GPG_KEY --clearsign >$RSL
+    cat rsl.tmp |gpg2 --default-key $GPG_KEY --clearsign >$RSL
 
     #Remove temp file
     rm rsl.tmp
