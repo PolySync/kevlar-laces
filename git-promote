@@ -10,16 +10,31 @@ CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
 STASH_OUTPUT=''
 
-function unstash_changes()
-{
+function unstash_changes() {
 	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
 		POP_STASH="$(git stash pop)"
 		if [ $? != 0 ]; then
 			echo "ERROR:"
 			echo "$POP_STASH"
-			exit 8
+			exit 9
 		fi
 	fi
+}
+
+function restore_original_state()
+{
+	CLEAR_INDEX="$(git reset --hard HEAD)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$CLEAR_INDEX"
+	fi
+	CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$CHECKOUT_ORIGINAL_OUTPUT"
+		exit 8
+	fi
+	unstash_changes
 }
 
 STASH_OUTPUT="$(git stash save)"
@@ -49,7 +64,7 @@ FF_MASTER_OUTPUT="$(git merge -q --ff-only origin/$TARGET_BRANCH)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$FF_MASTER_OUTPUT"
-	unstash_changes
+	restore_original_state
 	exit 4
 fi
 
@@ -57,7 +72,7 @@ MERGE_OUTPUT="$(git merge -q -S --no-ff $PRERELEASE_TAG)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$MERGE_OUTPUT"
-	unstash_changes
+	restore_original_state
 	exit 5
 fi
 
@@ -65,7 +80,7 @@ TAG_OUTPUT="$(git tag -s $RELEASE_TAG -m $RELEASE_TAG)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "$TAG_OUTPUT"
-	unstash_changes
+	restore_original_state
 	exit 6
 fi
 
@@ -73,10 +88,10 @@ PUSH_OUTPUT="$(git push -q origin $TARGET_BRANCH --tags)"
 if [ $? != 0 ]; then
 	echo "ERROR:"
 	echo "TAG_OUTPUT"
-	unstash_changes
+	restore_original_state
 	exit 7
 fi
 
-unstash_changes
+restore_original_state
 
 exit 0
