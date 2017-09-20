@@ -50,6 +50,14 @@ def step_impl(context):
     command = 'git -C {0} mergepr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
+@when('I run the mergepr command with the --no-prune option in position {position} targeting devel')
+def step_impl(context, position):
+    context.target_branch = 'devel'
+    args = [context.branch_name, context.target_branch]
+    args.insert(int(position), '--no-prune')
+    command = 'git -C {0} mergepr {1} {2} {3}'.format(context.mock_developer_dir, args[0], args[1], args[2])
+    utils.run_with_project_in_path(command, context)
+
 @then('The PR should be merged')
 def step_impl(context):
     command = "git -C {0} log --max-count=1 --parents --format=oneline {1}".format(context.mock_github_dir, context.target_branch)
