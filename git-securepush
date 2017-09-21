@@ -268,7 +268,32 @@ function rsl_verify {
 
 
 #************************************************************************************
+function unstash_changes() {
+  if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+    POP_STASH="$(git stash pop)"
+    if [ $? != 0 ]; then
+      echo "ERROR:"
+      echo "$POP_STASH"
+      exit 9
+    fi
+  fi
+}
 
+
+function restore_original_state() {
+  CLEAR_INDEX="$(git reset --hard HEAD)"
+  if [ $? != 0 ]; then
+    echo "ERROR:"
+    echo "$CLEAR_INDEX"
+  fi
+  CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $PRIOR_BRANCH)"
+  if [ $? != 0 ]; then
+    echo "ERROR:"
+    echo "$CHECKOUT_ORIGINAL_OUTPUT"
+          exit 8
+  fi
+  unstash_changes
+}
 
 
 #Get Current Brach
@@ -284,6 +309,13 @@ fi
 if [ "$CURRENT_BRANCH" == "rsl" ]
 then
   exit 0
+fi
+
+STASH_OUTPUT="$(git stash save -a)"
+if [ $? != 0 ]; then
+  echo "ERROR:"
+  echo "$STASH_OUTPUT"
+  exit 1
 fi
 
 
@@ -338,7 +370,7 @@ do
     push_rsl
   else
     echo $CURRENT_BRANCH "Can't be pushed to remote. Please fetch and merge the changes then retry the fetch"
-    git checkout -q $PRIOR_BRANCH
+    restore_original_state
     exit 1
   fi
 done
@@ -348,4 +380,4 @@ done
 echo "Pushing the" $CURRENT_BRANCH "... "
 push_branch
 
-git checkout -q $PRIOR_BRANCH
+restore_original_state

@@ -25,10 +25,10 @@ function push_rsl {
 }
 
 
-#This function intializes the rsl branch and creates rsl file intial entries
+#This function initializes the rsl branch and creates rsl file initial entries
 function rsl_init {
 
-  #Set init variabe
+  #Set init variable
   init=1
   git checkout -q --orphan rsl
   git rm -qrf .
@@ -216,16 +216,57 @@ function rsl_verify {
 }
 
 #************************************************************************************
+function unstash_changes() {
+  if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+    POP_STASH="$(git stash pop)"
+    if [ $? != 0 ]; then
+      echo "ERROR:"
+      echo "$POP_STASH"
+      exit 9
+    fi
+  fi
+}
+
+
+function restore_original_state() {
+  CLEAR_INDEX="$(git reset --hard HEAD)"
+  if [ $? != 0 ]; then
+    echo "ERROR:"
+    echo "$CLEAR_INDEX"
+  fi
+  CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $PRIOR_BRANCH)"
+  if [ $? != 0 ]; then
+    echo "ERROR:"
+    echo "$CHECKOUT_ORIGINAL_OUTPUT"
+          exit 8
+  fi
+  unstash_changes
+}
 
 
 #Get Current Brach
-CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
+
+if [[ -z $1 ]]
+then
+  CURRENT_BRANCH=$PRIOR_BRANCH
+else
+  CURRENT_BRANCH=$1
+fi
 
 #check if we are pushing rsl branch
 if [ "$CURRENT_BRANCH" == "rsl" ]
 then
     exit 0
 fi
+
+STASH_OUTPUT="$(git stash save -a)"
+if [ $? != 0 ]; then
+  echo "ERROR:"
+  echo "$STASH_OUTPUT"
+  exit 1
+fi
+
 
 status=1
 # Repeat the following steps until rsl push is successful
@@ -284,7 +325,9 @@ else
   rsl_verify
 fi
 
-#Switch back to current branch
 git checkout -q $CURRENT_BRANCH
 git merge --ff-only origin/$CURRENT_BRANCH
+
+#Switch back to prior branch
+restore_original_state
 
