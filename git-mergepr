@@ -72,7 +72,7 @@ restore_original_state() {
 	if [ $? != 0 ]; then
 		echo "ERROR:"
 		echo "$CHECKOUT_ORIGINAL_OUTPUT"
-	      	exit 8
+		exit 8
 	fi
 	unstash_changes
 }
@@ -89,6 +89,15 @@ run_command()
 }
 
 echo "Attempting to securely merge branch 'origin/$BRANCH_TO_MERGE' into 'origin/$DESTINATION_BRANCH'"
+
+# prevent running on branch to be merged without --no-prune
+if [ $CURRENT_BRANCH = $BRANCH_TO_MERGE ] &&  [ $PRUNE_FLAG = off ]; then
+    echo "WARNING: You are checked out on the branch you are trying to merge."
+	echo "         This will prevent the tool from auto-pruning after merging."
+	echo "         If you want to keep a local copy of this branch, please consider the --no-prune flag."
+	echo "         Otherwise, check out a different branch and try again."
+	exit 10
+fi
 
 echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
 STASH_OUTPUT="$(git stash save -a)" || exit 1;
