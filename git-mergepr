@@ -15,7 +15,7 @@ fi
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
-function unstash_changes() {
+unstash_changes() {
 	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
 		POP_STASH="$(git stash pop)"
 		if [ $? != 0 ]; then
@@ -27,7 +27,7 @@ function unstash_changes() {
 } 
 
 
-function restore_original_state() {
+restore_original_state() {
 	CLEAR_INDEX="$(git reset --hard HEAD)"
 	if [ $? != 0 ]; then
 		echo "ERROR:"
@@ -42,61 +42,31 @@ function restore_original_state() {
 	unstash_changes
 }
 
-STASH_OUTPUT="$(git stash save)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$STASH_OUTPUT"
-	exit 1
-fi
+run_command()
+{
+	echo $1
+	output="$($1 2>&1)"
+	if [ $? != 0 ]; then
+		printf "ERROR: %s\n" "$output"
+		return 1
+	else
+		printf "OUTPUT: %s\n" "$output"
+		return 0
+	fi
+}
 
-FETCH_OUTPUT="$(git fetch -q --prune)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$FETCH_OUTPUT"
-	unstash_changes
-	exit 2
-fi
-
-CHECKOUT_OUTPUT="$(git checkout -q --detach origin/$DESTINATION_BRANCH)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$CHECKOUT_OUTPUT"
-	unstash_changes
-	exit 3
-fi
-
+STASH_OUTPUT="$(git stash save)" || exit 1; 
+run_command "git fetch -q --prune" || { unstash_changes && exit 2; }
+run_command "git checkout -q --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
 MERGE_MESSAGE="Merge remote-tracking branch 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH"
-MERGE_OUTPUT=$(git merge -S --no-ff -m "$MERGE_MESSAGE" origin/$BRANCH_TO_MERGE)
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$MERGE_OUTPUT"
-	restore_original_state
-	exit 4
-fi
+run_command "git merge -S --no-ff -m \"$MERGE_MESSAGE\" origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
+run_command "git push -q origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
 
-PUSH_OUTPUT="$(git push -q origin HEAD:$DESTINATION_BRANCH)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$PUSH_OUTPUT"
-	restore_original_state
-	exit 5
-fi
+
 
 if [ "$PRUNE_FLAG" = off ]; then
-	PUSH_EMPTY_BRANCH="$(git push -q origin :$BRANCH_TO_MERGE)"
-	if [ $? != 0 ]; then
-		echo "ERROR:"
-		echo "$PUSH_EMPTY_BRANCH"
-		restore_original_state
-		exit 6
-	fi
-	DELETE_LOCAL_BRANCH="$(git branch -d $BRANCH_TO_MERGE)"
-	if [ $? != 0 ]; then
-		echo "ERROR:"
-		echo "$DELETE_LOCAL_BRANCH"
-		restore_original_state
-		exit 7
-	fi
+	run_command "git push -q origin :$BRANCH_TO_MERGE" || { restore_original_state && exit 6; }
+	run_command "git branch -d $BRANCH_TO_MERGE" || { restore_original_state && exit 7; }
 fi
 
 restore_original_state
