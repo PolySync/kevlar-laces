@@ -45,7 +45,7 @@ restore_original_state() {
 run_command()
 {
 	echo $1
-	output="$($1 2>&1)"
+	output=$(eval $1 2>&1)
 	if [ $? != 0 ]; then
 		printf "ERROR: %s\n" "$output"
 		return 1
@@ -58,8 +58,8 @@ run_command()
 STASH_OUTPUT="$(git stash save)" || exit 1; 
 run_command "git fetch -q --prune" || { unstash_changes && exit 2; }
 run_command "git checkout -q --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
-MERGE_MESSAGE="Merge remote-tracking branch 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH"
-run_command "git merge -S --no-ff -m \"$MERGE_MESSAGE\" origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
+MERGE_MESSAGE="\"Merge remote-tracking branch 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
+run_command "git merge -S --no-ff -m $MERGE_MESSAGE origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
 run_command "git push -q origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
 
 
