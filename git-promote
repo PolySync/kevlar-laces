@@ -55,7 +55,7 @@ run_command()
 echo "Attempting to securely promote prerelease $PRERELEASE_TAG into 'origin/$TARGET_BRANCH' with tag $RELEASE_TAG"
 
 echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
-STASH_OUTPUT="$(git stash save)" || exit 1; 
+STASH_OUTPUT="$(git stash save -a)" || exit 1;
 run_command "git fetch -q --tags" || { unstash_changes && exit 2; }
 run_command "git checkout -q $TARGET_BRANCH" || { unstash_changes && exit 3; }
 
