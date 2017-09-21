@@ -45,6 +45,13 @@ def step_impl(context, tag):
     utils.run_with_project_in_path('git -C {0} commit --allow-empty --no-gpg-sign -m "creating an unsigned commit"'.format(context.mock_developer_dir), context)
     utils.run_with_project_in_path('git -C {0} tag -s {1} -m {1}'.format(context.mock_developer_dir, tag), context)
 
+@when('The {command} command is run with the -h flag')
+def step_impl(context, command):
+    cmd = 'git -C {0} {1} -h'.format(context.mock_developer_dir, command)
+    out, err, rc = utils.run_with_project_in_path(cmd, context)
+    context.exit_code = rc
+    context.stdout = out
+
 @then('The script should return {exit_code}')
 def step_impl(context, exit_code):
     assert_that(context.rc, equal_to(int(exit_code)))
@@ -70,3 +77,10 @@ def step_impl(context, branch):
     out, err, rc = utils.run_with_project_in_path('git -C {0} branch'.format(context.mock_developer_dir), context)
     assert_that(out, contains_string('feature'))
 
+@then('The terminal displays usage options for the {command} command')
+def step_impl(context, command):
+    assert_that(context.stdout, contains_string('usage:'))
+
+@then('The script exits with status 0')
+def step_impl(context):
+    assert_that(context.exit_code, equal_to(0))

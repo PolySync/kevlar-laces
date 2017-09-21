@@ -4,14 +4,47 @@ PRUNE_FLAG=off
 BRANCH_TO_MERGE=""
 DESTINATION_BRANCH=""
 
-if [ "$1" = "--no-prune" ]; then
-	PRUNE_FLAG=on
-	BRANCH_TO_MERGE="$2"
-	DESTINATION_BRANCH="$3"
-else
-	BRANCH_TO_MERGE="$1"
-	DESTINATION_BRANCH="$2"
+function usage() {
+	echo "usage: mergepr [--no-prune] <src> <dest>"
+}
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+	usage
+	exit
 fi
+
+while :
+do
+	case "$1" in
+		-h | -help )
+			usage
+			exit 0
+			;;
+		--no-prune )
+			PRUNE_FLAG=on
+			shift
+			;;
+		-* )
+			usage
+			exit 0
+			;;
+		* )
+			if [ -z $BRANCH_TO_MERGE ]; then
+				BRANCH_TO_MERGE="$1"
+				shift
+			elif [ -z $DESTINATION_BRANCH ]; then
+				if [ -n "$1" ]; then
+					DESTINATION_BRANCH="$1"
+					shift
+				else
+					usage
+					exit 0
+				fi
+			else
+				break
+			fi
+	esac
+done
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
