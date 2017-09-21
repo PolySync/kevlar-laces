@@ -22,7 +22,25 @@ Running the tests will also require python, pip, and `behave`.
 
 ## Installation
 
-Who knows... probably something to do with cloning the repo at a certain version into `~/.local/bin` or something like that.
+Clone the `kevlar-laces` repository to wherever you normally keep your
+repositories. The install script will create symlinks to that location.
+For example purposes, the `~/repos` directory is used, but any persistent
+location will work.
+
+```
+$ cd ~/repos
+$ git clone git@github.com:PolySync/kevlar-laces
+$ cd kevlar-laces
+$ . ./install.sh
+```
+
+The above example explicitly runs the install script with a preceding `.`. This
+is solely for convenience in the _current_ terminal session, because
+`install.sh` may need to modify `$PATH` to include `$HOME/.local/bin`. If you
+already have `$HOME/.local/bin` in `$PATH` or you do not need to run the various
+kevlar-laces git subcommands in the _current_ terminal session, then
+`./install.sh` will suffice.
+
 
 ## Usage
 
