@@ -19,9 +19,9 @@ def most_recent_file_contents(context):
 
     return content
 
-@when('I run git-securefetch')
+@when('I run git-secure-fetch')
 def step_impl(context):
-    command = 'git -C {0} securefetch'.format(context.mock_developer_dir)
+    command = 'git -C {0} secure-fetch'.format(context.mock_developer_dir)
     utils.run_with_project_in_path(command, context)
 
 @then('The latest RSL entry should be a fetch entry')

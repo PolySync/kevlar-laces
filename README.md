@@ -56,48 +56,66 @@ By default the `mergepr` subcommand will also prune the requesting branch after 
 git mergepr --no-prune bugfix/fix-all-yo-bugz devel
 ```
 
-### git-securepush
+### git-secure-push
 
-Git is vulnerable to metadata attacks as detailed in the [RSL paper](https://www.usenix.org/system/files/conference/usenixsecurity16/sec16_paper_torres-arias.pdf). In order to create a signed and replicated state log the `git-securepush` and `git-securefetch`/`git-securepull` commands work in concert to create a reference state log for branches and tags that can be verified by other developers to ensure the repository metadata is consistent (or at least the parts known during the last interaction with the Bitbucket or GitHub server are unchanged).
+Git is vulnerable to metadata attacks as detailed in the [RSL paper](https://www.usenix.org/system/files/conference/usenixsecurity16/sec16_paper_torres-arias.pdf).
+In order to create a signed and replicated state log the `git-secure-push` and
+`git-secure-fetch`/`git-secure-pull` commands work in concert to create a
+reference state log for branches and tags that can be verified by other
+developers to ensure the repository metadata is consistent (or at least the
+parts known during the last interaction with the Bitbucket or GitHub server are
+unchanged).
 
 The `securepush` subcommand will only push the currently checked out branch. It
 will also prompt for GPG signatures twice: first for the clearsign of the
 current metadata state for this branch, and second for the commit containing
-that metadata.  The `securepush` command will also create the `rsl` branch if necessary.
+that metadata.  The `secure-push` command will also create the `rsl` branch if necessary.
 
 ```
-git securepush
+git secure-push
 ```
 
 
-### git-securefetch
+### git-secure-fetch
 
-Git is vulnerable to metadata attacks as detailed in the [RSL paper](https://www.usenix.org/system/files/conference/usenixsecurity16/sec16_paper_torres-arias.pdf). In order to create a signed and replicated state log the `git-securepush` and `git-securefetch`/`git-securepull` commands work in concert to create a reference state log for branches and tags that can be verified by other developers to ensure the repository metadata is consistent (or at least the parts known during the last interaction with the Bitbucket or GitHub server are unchanged).
+Git is vulnerable to metadata attacks as detailed in the [RSL paper](https://www.usenix.org/system/files/conference/usenixsecurity16/sec16_paper_torres-arias.pdf).
+In order to create a signed and replicated state log the `git-secure-push` and
+`git-secure-fetch`/`git-secure-pull` commands work in concert to create a
+reference state log for branches and tags that can be verified by other
+developers to ensure the repository metadata is consistent (or at least the
+parts known during the last interaction with the Bitbucket or GitHub server are
+unchanged).
 
-The `securefetch` subcommand will only fetch the currently checked out branch. It
+The `secure-fetch` subcommand will only fetch the currently checked out branch. It
 will also create a nonce on the `rsl` branch and therefore will prompt for GPG signature as part of that commit.
 
-The `securefetch` subcommand will not merge any changes into the local working
+The `secure-fetch` subcommand will not merge any changes into the local working
 branch. For that you'll either need to use `git merge` explicitly, or use `git
-securepull`.
+secure-pull`.
 
 ```
-git securefetch
+git secure-fetch
 ```
 
-### git-securepull
+### git-secure-pull
 
-Git is vulnerable to metadata attacks as detailed in the [RSL paper](https://www.usenix.org/system/files/conference/usenixsecurity16/sec16_paper_torres-arias.pdf). In order to create a signed and replicated state log the `git-securepush` and `git-securefetch`/`git-securepull` commands work in concert to create a reference state log for branches and tags that can be verified by other developers to ensure the repository metadata is consistent (or at least the parts known during the last interaction with the Bitbucket or GitHub server are unchanged).
+Git is vulnerable to metadata attacks as detailed in the [RSL paper](https://www.usenix.org/system/files/conference/usenixsecurity16/sec16_paper_torres-arias.pdf).
+In order to create a signed and replicated state log the `git-secure-push` and
+`git-secure-fetch`/`git-secure-pull` commands work in concert to create a
+reference state log for branches and tags that can be verified by other
+developers to ensure the repository metadata is consistent (or at least the
+parts known during the last interaction with the Bitbucket or GitHub server are
+unchanged).
 
-The `securepull` subcommand will only fetch and merge the currently checked out branch. It
+The `secure-pull` subcommand will only fetch and merge the currently checked out branch. It
 will also create a nonce on the `rsl` branch and therefore will prompt for GPG signature as part of that commit.
 
-The `securepull` subcommand will only attempt to fast-forward merge any upstream
+The `secure-pull` subcommand will only attempt to fast-forward merge any upstream
 changes and will fail if it is unable to do so. If you need a recursive/3-way
 merge, you'll need to explicitly use `git merge`.
 
 ```
-git securepull
+git secure-pull
 ```
 
 
