@@ -15,8 +15,9 @@ CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
 STASH_OUTPUT=''
 
-function unstash_changes() {
+unstash_changes() {
 	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+		echo "Attempting to unstash local changes"
 		POP_STASH="$(git stash pop)"
 		if [ $? != 0 ]; then
 			echo "ERROR:"
@@ -26,8 +27,9 @@ function unstash_changes() {
 	fi
 }
 
-function restore_original_state()
+restore_original_state()
 {
+	echo "Attempting to return to branch $CURRENT_BRANCH"
 	CLEAR_INDEX="$(git reset --hard HEAD)"
 	if [ $? != 0 ]; then
 		echo "ERROR:"
@@ -42,60 +44,40 @@ function restore_original_state()
 	unstash_changes
 }
 
-STASH_OUTPUT="$(git stash save)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$STASH_OUTPUT"
-	exit 1
-fi
+run_command()
+{
+	echo $1
+	output="$($1 2>&1)"
+	if [ $? != 0 ]; then
+		printf "ERROR: %s\n" "$output"
+		return 1
+	else
+		printf "OUTPUT: %s\n" "$output"
+		return 0
+	fi
+}
 
-FETCH_OUTPUT="$(git fetch -q --tags)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$FETCH_OUTPUT"
-	unstash_changes
-	exit 2
-fi
+echo "Attempting to securely promote prerelease $PRERELEASE_TAG into 'origin/$TARGET_BRANCH' with tag $RELEASE_TAG"
 
-CHECKOUT_OUTPUT="$(git checkout -q $TARGET_BRANCH)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "Your target branch does not appear to exist"
-	unstash_changes
-	exit 3
-fi
+echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
+STASH_OUTPUT="$(git stash save -a)" || exit 1;
+run_command "git fetch -q --tags" || { unstash_changes && exit 2; }
+run_command "git checkout -q $TARGET_BRANCH" || { unstash_changes && exit 3; }
 
-FF_MASTER_OUTPUT="$(git merge -q --ff-only origin/$TARGET_BRANCH)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$FF_MASTER_OUTPUT"
-	restore_original_state
-	exit 4
-fi
+echo "Attempting to fast-forward latest changes"
+run_command "git merge -q --ff-only origin/$TARGET_BRANCH" || { restore_original_state && exit 4; }
+echo "Fast forward successful!"
 
-MERGE_OUTPUT="$(git merge -q -S --no-ff $PRERELEASE_TAG)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$MERGE_OUTPUT"
-	restore_original_state
-	exit 5
-fi
+echo "Attempting to merge tagged version $PRERELEASE_TAG into $TARGET_BRANCH"
+run_command "git merge -q -S --no-ff $PRERELEASE_TAG" || { restore_original_state && exit 5; }
+echo "Merge successful!"
 
-TAG_OUTPUT="$(git tag -s $RELEASE_TAG -m $RELEASE_TAG)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "$TAG_OUTPUT"
-	restore_original_state
-	exit 6
-fi
+echo "Tagging HEAD with $RELEASE_TAG"
+run_command "git tag -s $RELEASE_TAG -m $RELEASE_TAG" || { restore_original_state && exit 6; }
 
-PUSH_OUTPUT="$(git push -q origin $TARGET_BRANCH --tags)"
-if [ $? != 0 ]; then
-	echo "ERROR:"
-	echo "TAG_OUTPUT"
-	restore_original_state
-	exit 7
-fi
+echo "Attempting to push to remote repository 'origin'"
+run_command "git push -q origin $TARGET_BRANCH --tags" || { restore_original_state && exit 7; }
+echo "Push Successful!"
 
 restore_original_state
 
