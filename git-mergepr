@@ -58,7 +58,7 @@ unstash_changes() {
 			exit 9
 		fi
 	fi
-} 
+}
 
 
 restore_original_state() {
@@ -79,13 +79,11 @@ restore_original_state() {
 
 run_command()
 {
-	echo "RUNNING COMMAND: " $1
 	output=$(eval $1 2>&1)
 	if [ $? != 0 ]; then
 		printf "ERROR: %s\n" "$output"
 		return 1
 	else
-		printf "OUTPUT: %s\n" "$output"
 		return 0
 	fi
 }
@@ -94,20 +92,20 @@ echo "Attempting to securely merge branch 'origin/$BRANCH_TO_MERGE' into 'origin
 
 echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
 STASH_OUTPUT="$(git stash save -a)" || exit 1;
-run_command "git fetch -q --prune" || { unstash_changes && exit 2; }
-run_command "git checkout -q --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
+run_command "git fetch --prune" || { unstash_changes && exit 2; }
+run_command "git checkout --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
 echo "Attempting to merge"
 MERGE_MESSAGE="\"Merge 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
 run_command "git merge -S --no-ff -m $MERGE_MESSAGE origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
 echo "Merge Successful!"
 
 echo "Attempting to push to remote repository 'origin'"
-run_command "git push -q origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
+run_command "git push origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
 echo "Push Successful!"
 
 
 if [ "$PRUNE_FLAG" = off ]; then
-	run_command "git push -q origin :$BRANCH_TO_MERGE" || { restore_original_state && exit 6; }
+	run_command "git push origin :$BRANCH_TO_MERGE" || { restore_original_state && exit 6; }
 	run_command "git branch -d $BRANCH_TO_MERGE" || { restore_original_state && exit 7; }
 fi
 
