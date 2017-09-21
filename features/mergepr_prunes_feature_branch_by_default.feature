@@ -17,6 +17,6 @@ Feature: prunes feature branch by default
     Given A local copy of the repo on the feature branch
     And The repo has a feature PR that is ready to merge
     When I run the git-mergepr command targeting devel
-    Then The terminal prints a warning
+    Then The terminal prints an error
     And The script should return 10
     And The feature branch should still exist
