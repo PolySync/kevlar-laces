@@ -12,7 +12,7 @@ Feature: Unique error codes for problematic situations
 
   @merge
   Scenario: Fail when there is a merge conflict
-    Given A local copy of the repo on the feature branch
+    Given A local copy of the repo on the master branch
     And The repo has a feature PR that is ready to merge
     And There is a merge conflict
     When I run the git-mergepr command targeting devel
@@ -35,18 +35,18 @@ Feature: Unique error codes for problematic situations
 
   @merge
   Scenario: Fail when branch exists locally but not remotely
-    Given a local copy of the repo on the feature branch
+    Given a local copy of the repo on the devel branch
     And The repo has a feature PR that is ready to merge
     But The feature branch does not exist remotely
     When I run the git-mergepr command targeting devel
     Then the script should return 4
 
   @merge
-  Scenario: Fail on re-checkout of branch when mergepr called without --no-prune flag
+  Scenario: Fail branch when mergepr called without --no-prune flag on feature branch
     Given a local copy of the repo on the feature branch
     And The repo has a feature PR that is ready to merge
     When I run the git-mergepr command targeting devel
-    Then the script should return 8
+    Then the script should return 10
 
   @promote
   Scenario: Fail when release tag already exists

@@ -16,6 +16,7 @@ def step_impl(context, branch):
 
 @given('There is a merge conflict')
 def step_impl(context):
+    branch, err, rc = utils.run_with_project_in_path('git -C {0} symbolic-ref --short HEAD'.format(context.mock_developer_dir), context)
     utils.run_with_project_in_path('git -C {0} checkout -q devel'.format(context.mock_developer_dir), context)
     utils.shell_command('cp -a {0}/features/test_file.txt {1}/test_file.txt'.format(os.getcwd(), context.mock_developer_dir))
     utils.run_with_project_in_path('git -C {0} add test_file.txt'.format(context.mock_developer_dir), context)
@@ -26,6 +27,7 @@ def step_impl(context):
     utils.run_with_project_in_path('git -C {0} add test_file.txt'.format(context.mock_developer_dir), context)
     utils.run_with_project_in_path('git -C {0} commit -m "a merge conflict from feature"'.format(context.mock_developer_dir), context)
     utils.run_with_project_in_path('git -C {0} push origin feature'.format(context.mock_developer_dir), context)
+    utils.run_with_project_in_path('git -C {0} checkout -q {1}'.format(context.mock_developer_dir, branch), context)
 
 @given('The feature branch does not exist remotely')
 def step_impl(context):
