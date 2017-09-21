@@ -64,7 +64,7 @@ STASH_OUTPUT="$(git stash save -a)" || exit 1;
 run_command "git fetch -q --prune" || { unstash_changes && exit 2; }
 run_command "git checkout -q --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
 echo "Attempting to merge"
-MERGE_MESSAGE="\"Merge remote-tracking branch 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
+MERGE_MESSAGE="\"Merge 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
 run_command "git merge -S --no-ff -m $MERGE_MESSAGE origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
 echo "Merge Successful!"
 
