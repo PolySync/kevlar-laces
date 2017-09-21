@@ -7,6 +7,15 @@ GPG_KEY=`git config user.signingkey`
 
 #************** Functions ***********************************
 
+function print_usage {
+  echo "Usage: git securepush [branch]"
+  echo ""
+  echo "Pushes the current state of a branch and adds a push entry to the RSL."
+  echo ""
+  echo "NOTE: Only pushes to the 'origin' remote."
+  echo "origin: `git remote get-url origin`"
+}
+
 #This function creates the rsl entries related to the push operation
 function update_rsl_push {
 
@@ -298,11 +307,27 @@ function restore_original_state() {
 
 #Get Current Brach
 PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
-if [[ -z $1 ]]
+
+while [ $# -ne 0 ]
+do
+  case "$1" in
+    -h | -help )
+      print_usage
+      exit 0
+      ;;
+    -* )
+      print_usage
+      exit -1
+      ;;
+    * )
+      CURRENT_BRANCH=$1
+      shift
+      ;;
+  esac
+done
+if [[ -z $CURRENT_BRANCH ]]
 then
   CURRENT_BRANCH=$PRIOR_BRANCH
-else
-  CURRENT_BRANCH=$1
 fi
 
 #check if we are pushing rsl branch
