@@ -81,6 +81,10 @@ def step_impl(context, branch):
 def step_impl(context, command):
     assert_that(context.stdout, contains_string('usage:'))
 
+@then('The terminal prints a warning')
+def step_impl(context):
+    assert_that(context.out, contains_string('WARNING:'))
+
 @then('The script exits with status 0')
 def step_impl(context):
     assert_that(context.exit_code, equal_to(0))

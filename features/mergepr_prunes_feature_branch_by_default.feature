@@ -12,3 +12,11 @@ Feature: prunes feature branch by default
     And The merge commit should be signed
     And The feature branch should not exist
 
+  @merge
+  Scenario: Prevent running when feature branch is checked out locally
+    Given A local copy of the repo on the feature branch
+    And The repo has a feature PR that is ready to merge
+    When I run the git-mergepr command targeting devel
+    Then The terminal prints a warning
+    And The script should return 10
+    And The feature branch should still exist
