@@ -115,7 +115,10 @@ echo "Push Successful!"
 
 if [ "$PRUNE_FLAG" = off ]; then
 	run_command "git push origin :$BRANCH_TO_MERGE" || { restore_original_state && exit 6; }
-	run_command "git branch -d $BRANCH_TO_MERGE" || { restore_original_state && exit 7; }
+	BRANCH_EXISTS="$(git show-ref refs/heads/$BRANCH_TO_MERGE)"
+	if [ -n "$BRANCH_EXISTS" ]; then
+		run_command "git branch -d $BRANCH_TO_MERGE" || { restore_original_state && exit 7; }
+	fi
 fi
 
 restore_original_state
