@@ -46,13 +46,11 @@ restore_original_state()
 
 run_command()
 {
-	echo $1
 	output="$($1 2>&1)"
 	if [ $? != 0 ]; then
 		printf "ERROR: %s\n" "$output"
 		return 1
 	else
-		printf "OUTPUT: %s\n" "$output"
 		return 0
 	fi
 }
@@ -61,22 +59,22 @@ echo "Attempting to securely promote prerelease $PRERELEASE_TAG into 'origin/$TA
 
 echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
 STASH_OUTPUT="$(git stash save -a)" || exit 1;
-run_command "git fetch -q --tags" || { unstash_changes && exit 2; }
-run_command "git checkout -q $TARGET_BRANCH" || { unstash_changes && exit 3; }
+run_command "git fetch --tags" || { unstash_changes && exit 2; }
+run_command "git checkout $TARGET_BRANCH" || { unstash_changes && exit 3; }
 
 echo "Attempting to fast-forward latest changes"
-run_command "git merge -q --ff-only origin/$TARGET_BRANCH" || { restore_original_state && exit 4; }
+run_command "git merge --ff-only origin/$TARGET_BRANCH" || { restore_original_state && exit 4; }
 echo "Fast forward successful!"
 
 echo "Attempting to merge tagged version $PRERELEASE_TAG into $TARGET_BRANCH"
-run_command "git merge -q -S --no-ff $PRERELEASE_TAG" || { restore_original_state && exit 5; }
+run_command "git merge -S --no-ff $PRERELEASE_TAG" || { restore_original_state && exit 5; }
 echo "Merge successful!"
 
 echo "Tagging HEAD with $RELEASE_TAG"
 run_command "git tag -s $RELEASE_TAG -m $RELEASE_TAG" || { restore_original_state && exit 6; }
 
 echo "Attempting to push to remote repository 'origin'"
-run_command "git push -q origin $TARGET_BRANCH --tags" || { restore_original_state && exit 7; }
+run_command "git push origin $TARGET_BRANCH --tags" || { restore_original_state && exit 7; }
 echo "Push Successful!"
 
 restore_original_state
