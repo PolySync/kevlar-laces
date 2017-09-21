@@ -17,6 +17,7 @@ CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
 unstash_changes() {
 	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+		echo "Attempting to unstash local changes"
 		POP_STASH="$(git stash pop)"
 		if [ $? != 0 ]; then
 			echo "ERROR:"
@@ -28,6 +29,7 @@ unstash_changes() {
 
 
 restore_original_state() {
+	echo "Attempting to return to branch $CURRENT_BRANCH"
 	CLEAR_INDEX="$(git reset --hard HEAD)"
 	if [ $? != 0 ]; then
 		echo "ERROR:"
@@ -44,7 +46,7 @@ restore_original_state() {
 
 run_command()
 {
-	echo $1
+	echo "RUNNING COMMAND: " $1
 	output=$(eval $1 2>&1)
 	if [ $? != 0 ]; then
 		printf "ERROR: %s\n" "$output"
@@ -55,13 +57,20 @@ run_command()
 	fi
 }
 
+echo "Attempting to securely merge branch 'origin/$BRANCH_TO_MERGE' into 'origin/$DESTINATION_BRANCH'"
+
+echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
 STASH_OUTPUT="$(git stash save)" || exit 1; 
 run_command "git fetch -q --prune" || { unstash_changes && exit 2; }
 run_command "git checkout -q --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
+echo "Attempting to merge"
 MERGE_MESSAGE="\"Merge remote-tracking branch 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
 run_command "git merge -S --no-ff -m $MERGE_MESSAGE origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
-run_command "git push -q origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
+echo "Merge Successful!"
 
+echo "Attempting to push to remote repository 'origin'"
+run_command "git push -q origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
+echo "Push Successful!"
 
 
 if [ "$PRUNE_FLAG" = off ]; then
