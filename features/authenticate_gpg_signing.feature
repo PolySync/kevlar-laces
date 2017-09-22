@@ -8,7 +8,7 @@ Feature: Allow merging of unsigned commits
         Given A local copy of the repo on the master branch
         And The repo has a feature PR that is ready to merge
         And The feature branch contains unsigned commits
-        When I run the git-mergepr command targeting devel
+        When I run the git-merge-pr command targeting devel
         Then The PR should be merged
         And The merge commit should be signed
 

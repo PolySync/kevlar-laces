@@ -33,31 +33,31 @@ def step_impl(context):
 def step_impl(context):
     utils.run_with_project_in_path('git -C {0} push origin :feature'.format(context.mock_developer_dir), context)
 
-@when('I run the git-mergepr command targeting {target}')
+@when('I run the git-merge-pr command targeting {target}')
 def step_impl(context, target):
     context.target_branch = target
-    command = 'git -C {0} mergepr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
+    command = 'git -C {0} merge-pr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
-@when('I run the git-mergepr --no-prune command targeting {target}')
+@when('I run the git-merge-pr --no-prune command targeting {target}')
 def step_impl(context, target):
     context.target_branch = target
-    command = 'git -C {0} mergepr --no-prune {1} {2}'.format(context.mock_developer_dir, context.branch_name, target)
+    command = 'git -C {0} merge-pr --no-prune {1} {2}'.format(context.mock_developer_dir, context.branch_name, target)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
-@when('I run the git-mergepr command with a branch to be merged that does not exist')
+@when('I run the git-merge-pr command with a branch to be merged that does not exist')
 def step_impl(context):
     context.branch_name = 'not_a_branch'
     context.target_branch = 'devel'
-    command = 'git -C {0} mergepr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
+    command = 'git -C {0} merge-pr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
-@when('I run the mergepr command with the --no-prune option in position {position} targeting devel')
+@when('I run the merge-pr command with the --no-prune option in position {position} targeting devel')
 def step_impl(context, position):
     context.target_branch = 'devel'
     args = [context.branch_name, context.target_branch]
     args.insert(int(position), '--no-prune')
-    command = 'git -C {0} mergepr {1} {2} {3}'.format(context.mock_developer_dir, args[0], args[1], args[2])
+    command = 'git -C {0} merge-pr {1} {2} {3}'.format(context.mock_developer_dir, args[0], args[1], args[2])
     utils.run_with_project_in_path(command, context)
 
 @then('The PR should be merged')

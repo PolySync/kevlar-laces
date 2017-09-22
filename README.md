@@ -56,22 +56,22 @@ git promote 1.1.2-devel.54 master
 
 Which would do a signed merge of `devel` at `1.1.2-devel.54` into `master` and then tag `master` with `1.1.2`, thus creating the `1.1.2` release.
 
-### git-mergepr
+### git-merge-pr
 
 The web UIs of GitHub and BitBucket don't create signed merge commits, which creates a problem when trying to measure the validity of a repository. So PRs need to be merged and pushed outside the web UIs.
 
-The `mergepr` subcommand is to help make it easier to merge PRs without interrupting your workflow when working on a project. If the branch requesting to be merged was `bugfix/fix-all-yo-bugz`, and the destination branch to merge to is `devel`, then from inside the project repository you'd run:
+The `merge-pr` subcommand is to help make it easier to merge PRs without interrupting your workflow when working on a project. If the branch requesting to be merged was `bugfix/fix-all-yo-bugz`, and the destination branch to merge to is `devel`, then from inside the project repository you'd run:
 
 ```
-git mergepr bugfix/fix-all-yo-bugz devel
+git merge-pr bugfix/fix-all-yo-bugz devel
 ```
 
 This will result in any changes in your current working tree being stashed, the remote changes for the repo being fetched, the PR being merged, and your stashed changes being unstashed so you can keep working.
 
-By default the `mergepr` subcommand will also prune the requesting branch after it has been merged. If you want to disable this then call the command with the `--no-prune` flag like:
+By default the `merge-pr` subcommand will also prune the requesting branch after it has been merged. If you want to disable this then call the command with the `--no-prune` flag like:
 
 ```
-git mergepr --no-prune bugfix/fix-all-yo-bugz devel
+git merge-pr --no-prune bugfix/fix-all-yo-bugz devel
 ```
 
 ### git-secure-push

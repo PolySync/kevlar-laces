@@ -7,7 +7,7 @@ Feature: Unique error codes for problematic situations
   Scenario: Fail when the branch to be merged does not exist
     Given A local copy of the repo on the master branch
     And The repo has a feature PR that is ready to merge
-    When I run the git-mergepr command with a branch to be merged that does not exist
+    When I run the git-merge-pr command with a branch to be merged that does not exist
     Then The script should return 4
 
   @merge
@@ -15,14 +15,14 @@ Feature: Unique error codes for problematic situations
     Given A local copy of the repo on the master branch
     And The repo has a feature PR that is ready to merge
     And There is a merge conflict
-    When I run the git-mergepr command targeting devel
+    When I run the git-merge-pr command targeting devel
     Then The script should return 4
 
   @merge
   Scenario: Fail when target branch does not exist
     Given a local copy of the repo on the master branch
     And The repo has a feature PR that is ready to merge
-    When I run the git-mergepr command targeting not_a_branch
+    When I run the git-merge-pr command targeting not_a_branch
     Then the script should return 3
 
   @merge
@@ -30,7 +30,7 @@ Feature: Unique error codes for problematic situations
     Given a local copy of the repo on the master branch
     And The repo has a feature PR that is ready to merge
     And The GPG signing key is not available
-    When I run the git-mergepr command targeting devel
+    When I run the git-merge-pr command targeting devel
     Then the script should return 4
 
   @merge
@@ -38,14 +38,14 @@ Feature: Unique error codes for problematic situations
     Given a local copy of the repo on the devel branch
     And The repo has a feature PR that is ready to merge
     But The feature branch does not exist remotely
-    When I run the git-mergepr command targeting devel
+    When I run the git-merge-pr command targeting devel
     Then the script should return 4
 
   @merge
-  Scenario: Fail branch when mergepr called without --no-prune flag on feature branch
+  Scenario: Fail branch when merge-pr called without --no-prune flag on feature branch
     Given a local copy of the repo on the feature branch
     And The repo has a feature PR that is ready to merge
-    When I run the git-mergepr command targeting devel
+    When I run the git-merge-pr command targeting devel
     Then the script should return 10
 
   @promote
