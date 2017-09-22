@@ -8,7 +8,7 @@ Feature: Replaces work-in-progress when done
     Given a local copy of the repo on the master branch
     And The repo has a feature PR that is ready to merge
     And I have done some work on the repo
-    When I run the git-mergepr command targeting devel
+    When I run the git-merge-pr command targeting devel
     Then The repo should be returned to the state it was in before I ran the script
 
   @promote
@@ -23,7 +23,7 @@ Feature: Replaces work-in-progress when done
   Scenario: Return repo to original branch after running script
     Given a local copy of the repo on the feature branch
     And The repo has a devel PR that is ready to merge
-    When I run the git-mergepr command targeting master
+    When I run the git-merge-pr command targeting master
     Then The repo should be returned to the feature branch when I am done
 
   @promote

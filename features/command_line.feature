@@ -12,14 +12,14 @@ Scenario Outline: Display usage and exit 0 when help flag is passed
 
   Examples:
     | command |
-    | mergepr |
+    | merge-pr |
     | promote |
 
 @merge
 Scenario Outline: Parse options passed in any order
   Given A local copy of the repo on the feature branch
   And The repo has a feature PR that is ready to merge
-  When I run the mergepr command with the --no-prune option in position <position> targeting devel
+  When I run the merge-pr command with the --no-prune option in position <position> targeting devel
   Then The PR should be merged
   And The feature branch should still exist
 
