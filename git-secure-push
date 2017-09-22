@@ -1,0 +1,408 @@
+#!/bin/bash
+
+
+# Update this variable value with your GPG Key
+GPG_KEY=`git config user.signingkey`
+
+
+#************** Functions ***********************************
+
+function print_usage {
+  echo "Usage: git securepush [branch]"
+  echo ""
+  echo "Pushes the current state of a branch and adds a push entry to the RSL."
+  echo ""
+  echo "NOTE: Only pushes to the 'origin' remote."
+  echo "origin: `git remote get-url origin`"
+}
+
+#This function creates the rsl entries related to the push operation
+function update_rsl_push {
+
+  commits=`git log @{u}.. --pretty=format:"%H" 2>/dev/null || git rev-list $CURRENT_BRANCH`
+  git checkout -q rsl
+
+  #Computing Hash for previous entries
+  RSL=$(find_last_entry_number)
+
+  #finding the last push entry
+  while [ -f $RSL ]
+  do
+    if grep -q HEAD $RSL
+      then
+        #Update Last RSL push entry
+        LAST_PUSH_ENTRY=$RSL
+        break
+      else
+        RSL=$(($RSL-1))
+      fi
+    done
+
+    #Caluculating the HASH
+    LAST_ENTRY=$(find_last_entry_number)
+    if [ -f $LAST_PUSH_ENTRY ]
+    then
+      for i in $(seq $LAST_PUSH_ENTRY $LAST_ENTRY)
+      do
+        cat $i >>hash_file.tmp
+      done
+    else
+      for i in $(seq 1 $LAST_ENTRY)
+      do
+        cat $i >>hash_file.tmp
+      done
+    fi
+
+  HASH=`cat hash_file.tmp|sha512sum | cut -d' ' -f1`
+  rm hash_file.tmp
+
+  #Updte rsl
+  echo "Related Commits" >rsl.tmp
+  echo $commits >>rsl.tmp
+  echo "Branch:"$CURRENT_BRANCH >>rsl.tmp
+  HEAD_HASH=`git rev-parse $CURRENT_BRANCH`
+  echo "HEAD":$HEAD_HASH >>rsl.tmp
+  echo "PREV_HASH:"$HASH >>rsl.tmp
+}
+
+function find_last_entry_number {
+  echo $(find . -maxdepth 1 -type f | grep -v 'rsl.tmp' | wc -l)
+}
+
+#This function creates the rsl entries related to the fetch operation
+function update_rsl_fetch {
+
+    LAST_ENTRY=$(find_last_entry_number)
+    RSL=$(($LAST_ENTRY+1))
+    echo `od -A n -t d -N 4 /dev/urandom` >$RSL
+
+    git add $RSL
+    git commit -S -qm "Adding the fetch entry at RSL"
+}
+
+#This function intializes the rsl branch and creates rsl file intial entries
+function rsl_init {
+
+    #Set init variabe
+    init=1
+    commits=`git rev-list $CURRENT_BRANCH`
+    git checkout -q --orphan rsl
+    git rm -qrf .
+    echo "Related Commits" >rsl.tmp
+    echo $commits >>rsl.tmp
+    echo "Branch:"$CURRENT_BRANCH >>rsl.tmp
+    HEAD_HASH=`git rev-parse $CURRENT_BRANCH`
+    echo "HEAD":$HEAD_HASH >>rsl.tmp
+    echo "PREV_HASH:"$HASH >>rsl.tmp
+}
+
+
+#This function fetches the newer version of rsl
+function rsl_fetch {
+
+  git fetch -q origin rsl
+  git checkout -q rsl
+
+  RSL=$(find_last_entry_number)
+
+  #finding the last verified push entry
+  while [ -f $RSL ]
+  do
+    if grep -q HEAD $RSL
+      then
+        #Update Last RSL push entry
+        LAST_VERIFIED_PUSH_ENTRY=$RSL
+        break
+      else
+        RSL=$(($RSL-1))
+      fi
+    done
+
+    git merge -q
+}
+
+# This function will sign the rsl entries and commits the changes
+function sign_rsl {
+
+  LAST_ENTRY=$(find_last_entry_number)
+  RSL=$(($LAST_ENTRY+1))
+  #Signthe rsl
+  cat rsl.tmp |gpg2 --default-key $GPG_KEY --clearsign >$RSL
+
+  #Remove temp file
+  rm rsl.tmp
+
+  # Commit the new RSL
+  git add $RSL
+  git commit -S -qm "Adding the push entry at RSL"
+}
+
+#This function pushes the rsl branch to server
+function push_rsl {
+
+  git push -q --set-upstream origin rsl 2>/dev/null
+
+  #Checking the status of RSL Push
+  status=$?
+
+}
+
+#This funtion pushes the branch to server
+
+function push_branch {
+
+  git checkout -q $CURRENT_BRANCH
+  git push -q --set-upstream origin $CURRENT_BRANCH
+
+}
+
+
+#This function verifies the rsl file
+function rsl_verify {
+
+    git checkout -q rsl
+    if git diff $RSL_PREV_HEAD HEAD --stat|grep -q 'deletion'
+    then
+        echo "RSL file corrupted"
+    fi
+
+    #verify the signature on last enry
+    LAST_ENTRY=$(ls -lrt|wc -l)
+
+
+    #Computing Hash for previous entries
+    RSL=$(find_last_entry_number)
+
+    #Finding first push entry
+    for i in $(seq 1 $RSL)
+    do
+      if grep -q HEAD $i
+      then
+        #Update Last RSL push entry
+        FIRST_PUSH_ENTRY=$i
+        break
+      else
+        RSL=$(($i+1))
+      fi
+    done
+
+    RSL=$(find_last_entry_number)
+    #finding the last push entry
+    while [ -f $RSL ]
+    do
+      if grep -q HEAD $RSL
+      then
+        #Update Last RSL push entry
+        LAST_PUSH_ENTRY=$RSL
+        break
+      else
+        RSL=$(($RSL-1))
+      fi
+    done
+    echo "******* Verifying the sign on last rsl entry *******"
+
+    if [ -f $LAST_PUSH_ENTRY ]
+    then
+      gpg2 --default-key $GPG_KEY --verify $LAST_PUSH_ENTRY &> /dev/null
+      local status=$?
+      if [ $status -ne 0 ]
+      then
+        echo "Signature verification on last push entry is failed"
+      else
+        echo "Signature verification on last push entry is successful"
+      fi
+    else
+      echo "There is no RSL push entry exist before. No need of signature verification"
+    fi
+
+    echo "****************************************************"
+
+    echo "******* Verifying the hash on new rsl push entries *******"
+    #Hash Verification
+
+    VERIFY=1
+    while [ $VERIFY -eq 1 ]
+    do
+      RSL=$(($LAST_PUSH_ENTRY-1))
+      while [ -f $RSL ]
+      do
+        if grep -q HEAD $RSL
+        then
+          #Update Last RSL push entry
+          LAST_PUSH_ENTRY2=$RSL
+          break
+        else
+          RSL=$(($RSL-1))
+        fi
+      done
+
+      if [ -f $LAST_PUSH_ENTRY2 ]
+      then
+        for i in $(seq $LAST_PUSH_ENTRY2 $(($LAST_PUSH_ENTRY-1)))
+        do
+          cat $i >>hash_file.tmp
+        done
+      else
+        for i in $(seq 1 $(($LAST_PUSH_ENTRY-1)))
+        do
+          cat $i >>hash_file.tmp
+        done
+      fi
+
+      HASH_1=`cat $LAST_PUSH_ENTRY|grep 'PREV_HASH:'|cut -d':' -f2`
+      HASH_2=`cat hash_file.tmp|sha512sum|cut -d' ' -f1`
+
+      if [[ "$HASH_2" != "$HASH_1" && ! -z "$HASH_1" ]]
+      then
+        echo "Hash verfication on the following entry failed"
+        echo "HASH_1:"$HASH_1 "  HASH_2":$HASH_2
+        echo `cat hash_file.tmp`
+        exit 1
+      else
+        echo "Hash verification successful "
+      fi
+      rm hash_file.tmp
+
+      if [[ $LAST_PUSH_ENTRY -eq $LAST_VERIFIED_PUSH_ENTRY || $LAST_PUSH_ENTRY -eq $FIRST_PUSH_ENTRY || -z $LAST_PUSH_ENTRY ]]
+      then
+        VERIFY=0
+      fi
+
+      LAST_PUSH_ENTRY=$LAST_PUSH_ENTRY2
+      LAST_PUSH_ENTRY2=0
+
+    done
+
+}
+
+
+#************************************************************************************
+function unstash_changes() {
+  if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+    POP_STASH="$(git stash pop)"
+    if [ $? != 0 ]; then
+      echo "ERROR:"
+      echo "$POP_STASH"
+      exit 9
+    fi
+  fi
+}
+
+
+function restore_original_state() {
+  CLEAR_INDEX="$(git reset --hard HEAD)"
+  if [ $? != 0 ]; then
+    echo "ERROR:"
+    echo "$CLEAR_INDEX"
+  fi
+  CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $PRIOR_BRANCH)"
+  if [ $? != 0 ]; then
+    echo "ERROR:"
+    echo "$CHECKOUT_ORIGINAL_OUTPUT"
+          exit 8
+  fi
+  unstash_changes
+}
+
+
+#Get Current Brach
+PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
+
+while [ $# -ne 0 ]
+do
+  case "$1" in
+    -h | -help )
+      print_usage
+      exit 0
+      ;;
+    -* )
+      print_usage
+      exit -1
+      ;;
+    * )
+      CURRENT_BRANCH=$1
+      shift
+      ;;
+  esac
+done
+if [[ -z $CURRENT_BRANCH ]]
+then
+  CURRENT_BRANCH=$PRIOR_BRANCH
+fi
+
+#check if we are pushing rsl branch
+if [ "$CURRENT_BRANCH" == "rsl" ]
+then
+  exit 0
+fi
+
+STASH_OUTPUT="$(git stash save -a)"
+if [ $? != 0 ]; then
+  echo "ERROR:"
+  echo "$STASH_OUTPUT"
+  exit 1
+fi
+
+
+#Update RSL
+if  [[ $(git branch -a |grep 'remotes/origin/rsl') ]]
+then
+  echo "Updating the rsl ..."
+  update_rsl_push
+else
+  # RSL branch Intialization
+  echo "Intializing the rsl ..."
+  rsl_init
+fi
+#Signing the rsl
+echo "Signing and Commiting the rsl ..."
+sign_rsl
+
+#Push RSL
+echo "Pushing the rsl ... "
+push_rsl
+while [ $status -ne 0 ]
+do
+  echo "rsl push failed !!"
+  echo "Fetching the rsl from server ..."
+  #reset the rsl branch
+  git reset --hard origin/rsl
+  rsl_fetch
+  rsl_verify
+
+  RSL=$(find_last_entry_number)
+  #finding the last push entry
+  while [ -f $RSL ]
+  do
+    if grep -q HEAD $RSL
+      then
+        #Update Last RSL push entry
+        LAST_PUSH_ENTRY=$RSL
+        break
+      else
+        RSL=$(($RSL-1))
+      fi
+    done
+  RSL_BRANCH_HEAD=`cat $LAST_PUSH_ENTRY |grep HEAD |tail -1|cut -d':' -f2`
+  #Verify the branch can be pushed to remote
+  if [[ $(git rev-list $CURRENT_BRANCH|grep $RSL_BRANCH_HEAD) ]]
+  then
+    echo "Updating the rsl with push entry"
+    update_rsl_push
+    echo "Signing the rsl"
+    sign_rsl
+    echo "Pushing the rsl"
+    push_rsl
+  else
+    echo $CURRENT_BRANCH "Can't be pushed to remote. Please fetch and merge the changes then retry the fetch"
+    restore_original_state
+    exit 1
+  fi
+done
+
+
+#Push current branch
+echo "Pushing the" $CURRENT_BRANCH "... "
+push_branch
+
+restore_original_state

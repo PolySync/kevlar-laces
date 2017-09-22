@@ -18,6 +18,11 @@ def step_impl(context, branch):
     utils.shell_command('git -C {0} config --local user.email "donut-reply@polysync.io"'.format(context.mock_developer_dir))
     utils.shell_command('git -C {0} config --local gpg.program gpg2'.format(context.mock_developer_dir))
 
+@given('I create a new {branch} branch')
+def step_impl(context, branch):
+    command = 'git -C {0} checkout -b {1}'.format(context.mock_developer_dir, branch)
+    utils.run_with_project_in_path(command, context)
+
 @given('The {release_tag} release tag already exists')
 def step_impl(context, release_tag):
     command = 'git -C {0} tag -s {1} -m {1}'.format(context.mock_github_dir, release_tag)
