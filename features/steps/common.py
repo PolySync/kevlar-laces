@@ -57,6 +57,11 @@ def step_impl(context, command):
     context.exit_code = rc
     context.stdout = out
 
+@when('I run git-{action}')
+def step_impl(context, action):
+    command = 'git -C {0} {1}'.format(context.mock_developer_dir, action)
+    context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
+
 @then('The script should return {exit_code}')
 def step_impl(context, exit_code):
     assert_that(context.rc, equal_to(int(exit_code)))
