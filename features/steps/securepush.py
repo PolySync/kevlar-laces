@@ -19,17 +19,6 @@ def most_recent_file_contents(context):
 
     return content
 
-
-@when('I run git-secure-push')
-def step_impl(context):
-    command = 'git -C {0} secure-push'.format(context.mock_developer_dir)
-    utils.run_with_project_in_path(command, context)
-
-@when('I run git-secure-push {branch}')
-def step_impl(context, branch):
-    command = 'git -C {0} secure-push {1}'.format(context.mock_developer_dir, branch)
-    utils.run_with_project_in_path(command, context)
-
 @then('The latest RSL entry should be a push entry')
 def step_impl(context):
     checkout_rsl_branch(context)

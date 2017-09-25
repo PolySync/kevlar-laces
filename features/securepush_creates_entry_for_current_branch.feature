@@ -26,3 +26,10 @@ Feature: Secure-push creates a push entry
     When I run git-secure-push feature2
     Then The latest RSL entry should be a push entry
     And The latest RSL entry should contain Branch:feature2
+
+  @securepush
+  Scenario: Fail when GPG signing key is not available
+    Given A local copy of the repo on the feature branch
+    And The GPG signing key is not available
+    When I run git-secure-push
+    Then The script should return 4
