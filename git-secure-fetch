@@ -3,6 +3,14 @@
 
 # Update this variable value with your GPG Key
 GPG_KEY=`git config user.signingkey`
+GPG_KEY_EXISTS=$(gpg2 --list-key $GPG_KEY)
+
+if [[ $? -ne 0 ]]
+then
+  echo "GPG Key $GPG_KEY is unavailable in the current GPG keychain"
+  exit 4
+fi
+
 
 #************** Functions ***********************************
 
