@@ -1,4 +1,4 @@
-Feature: Secure-fetch create a fetch entry
+Feature: Secure-fetch creates a fetch entry
   In order to start securely fetch
   As a developer
   I want to be secure-fetch or secure-pull to create fetch nonce entries on the RSL branch
@@ -10,9 +10,9 @@ Feature: Secure-fetch create a fetch entry
     When I run <command>
     Then The latest RSL entry should be a fetch entry
   Examples:
-	| command      |
+    | command      |
     | git-secure-fetch |
-	| git-secure-pull  |
+    | git-secure-pull  |
 
   @securepush
   Scenario Outline: Fail when GPG signing key is not available
@@ -22,6 +22,6 @@ Feature: Secure-fetch create a fetch entry
     When I run <command>
     Then The script should return 4
   Examples:
-	| command      |
+    | command      |
     | git-secure-fetch |
-	| git-secure-pull  |
+    | git-secure-pull  |
