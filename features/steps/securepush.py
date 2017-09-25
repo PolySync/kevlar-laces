@@ -23,7 +23,7 @@ def most_recent_file_contents(context):
 @when('I run git-secure-push')
 def step_impl(context):
     command = 'git -C {0} secure-push'.format(context.mock_developer_dir)
-    utils.run_with_project_in_path(command, context)
+    context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
 @when('I run git-secure-push {branch}')
 def step_impl(context, branch):
