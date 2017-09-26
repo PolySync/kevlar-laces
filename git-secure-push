@@ -26,7 +26,7 @@ function print_usage {
 #This function creates the rsl entries related to the push operation
 function update_rsl_push {
 
-  commits=`git log @{u}.. --pretty=format:"%H" 2>/dev/null || git rev-list $CURRENT_BRANCH`
+  commits=`git log @{u}.. --pretty=format:"%H" 2>/dev/null || git rev-list $BRANCH_TO_PUSH`
   git checkout -q rsl
 
   #Computing Hash for previous entries
@@ -66,8 +66,8 @@ function update_rsl_push {
   #Updte rsl
   echo "Related Commits" >rsl.tmp
   echo $commits >>rsl.tmp
-  echo "Branch:"$CURRENT_BRANCH >>rsl.tmp
-  HEAD_HASH=`git rev-parse $CURRENT_BRANCH`
+  echo "Branch:"$REMOTE_BRANCH >>rsl.tmp
+  HEAD_HASH=`git rev-parse $BRANCH_TO_FETCH`
   echo "HEAD":$HEAD_HASH >>rsl.tmp
   echo "PREV_HASH:"$HASH >>rsl.tmp
 }
@@ -92,13 +92,13 @@ function rsl_init {
 
     #Set init variabe
     init=1
-    commits=`git rev-list $CURRENT_BRANCH`
+    commits=`git rev-list $BRANCH_TO_PUSH`
     git checkout -q --orphan rsl
     git rm -qrf .
     echo "Related Commits" >rsl.tmp
     echo $commits >>rsl.tmp
-    echo "Branch:"$CURRENT_BRANCH >>rsl.tmp
-    HEAD_HASH=`git rev-parse $CURRENT_BRANCH`
+    echo "Branch:"$REMOTE_BRANCH >>rsl.tmp
+    HEAD_HASH=`git rev-parse $BRANCH_TO_FETCH`
     echo "HEAD":$HEAD_HASH >>rsl.tmp
     echo "PREV_HASH:"$HASH >>rsl.tmp
 }
@@ -154,12 +154,12 @@ function push_rsl {
 
 }
 
+
 #This funtion pushes the branch to server
 
 function push_branch {
-
-  git checkout -q $CURRENT_BRANCH
-  git push -q --set-upstream origin $CURRENT_BRANCH
+  git checkout -q $BRANCH_TO_PUSH
+  git push -q --set-upstream origin $BRANCH_TO_PUSH:$REMOTE_BRANCH
 
 }
 
@@ -311,9 +311,12 @@ function restore_original_state() {
 
 
 #************************************************************************************
-#Get Current Branch
-PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
+PRIOR_BRANCH="$(git symbolic-ref --short HEAD 2>&1)"
+if [[ $? != 0 ]]; then
+	PRIOR_BRANCH="$(git rev-parse HEAD)"
+fi
 
+#Get Current Branch
 while [ $# -ne 0 ]
 do
   case "$1" in
@@ -325,19 +328,37 @@ do
       print_usage
       exit -1
       ;;
+	HEAD )
+	  BRANCH_TO_PUSH=$PRIOR_BRANCH
+	  REMOTE_BRANCH=$PRIOR_BRANCH
+	  shift
+	  ;;
+	HEAD:* )
+	  BRANCH_TO_PUSH=$PRIOR_BRANCH
+	  REMOTE_BRANCH=$(echo "$1" | cut -d ":" -f 2)
+	  shift
+	  ;;
+	*:* )
+	  BRANCH_TO_PUSH=$(echo "$1" | cut -d ":" -f 1)
+	  REMOTE_BRANCH=$(echo "$1" | cut -d ":" -f 2)
+	  shift
+	  ;;
     * )
-      CURRENT_BRANCH=$1
+	  BRANCH_TO_PUSH=$1
+      REMOTE_BRANCH=$1
       shift
       ;;
   esac
 done
-if [[ -z $CURRENT_BRANCH ]]
+
+if [[ -z $REMOTE_BRANCH ]]
 then
-  CURRENT_BRANCH=$PRIOR_BRANCH
+  REMOTE_BRANCH=$PRIOR_BRANCH
+  BRANCH_TO_PUSH=$PRIOR_BRANCH
 fi
 
 #check if we are pushing rsl branch
-if [ "$CURRENT_BRANCH" == "rsl" ]
+if [ "$REMOTE_BRANCH" == "rsl" ]
 then
   exit 0
 fi
@@ -391,7 +412,7 @@ do
     done
   RSL_BRANCH_HEAD=`cat $LAST_PUSH_ENTRY |grep HEAD |tail -1|cut -d':' -f2`
   #Verify the branch can be pushed to remote
-  if [[ $(git rev-list $CURRENT_BRANCH|grep $RSL_BRANCH_HEAD) ]]
+  if [[ $(git rev-list $BRANCH_TO_PUSH |grep $RSL_BRANCH_HEAD) ]]
   then
     echo "Updating the rsl with push entry"
     update_rsl_push
@@ -400,7 +421,7 @@ do
     echo "Pushing the rsl"
     push_rsl
   else
-    echo $CURRENT_BRANCH "Can't be pushed to remote. Please fetch and merge the changes then retry the fetch"
+    echo $BRANCH_TO_BE_PUSHED "Can't be pushed to remote branch $REMOTE_BRANCH. Please fetch and merge the changes then retry the fetch"
     restore_original_state
     exit 1
   fi
@@ -408,7 +429,7 @@ done
 
 
 #Push current branch
-echo "Pushing the" $CURRENT_BRANCH "... "
+echo "Pushing the $BRANCH_TO_PUSH to remote branch $REMOTE_BRANCH ..."
 push_branch
 
 restore_original_state
