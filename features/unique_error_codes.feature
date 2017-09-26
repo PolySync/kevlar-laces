@@ -69,5 +69,5 @@ Feature: Unique error codes for problematic situations
     And The repo has prerelease tag 1.0.1-devel.3 to promote to master as 1.0.1
     And The GPG signing key is not available
     When I run the git-promote command from the command line
-    Then the script should return 5
+    Then the script should return 2
 
