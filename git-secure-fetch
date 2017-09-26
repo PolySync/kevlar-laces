@@ -15,7 +15,7 @@ fi
 #************** Functions ***********************************
 
 function print_usage {
-  echo "Usage: git securefetch [branch]"
+  echo "Usage: git secure-fetch [branch]"
   echo ""
   echo "Fetches the current state of a branch and validates the RSL leading"
   echo "up to that point."
