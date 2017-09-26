@@ -282,8 +282,6 @@ function rsl_verify {
 
 }
 
-
-#************************************************************************************
 function unstash_changes() {
   if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
     POP_STASH="$(git stash pop)"
@@ -312,7 +310,8 @@ function restore_original_state() {
 }
 
 
-#Get Current Brach
+#************************************************************************************
+#Get Current Branch
 PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
 
 while [ $# -ne 0 ]
