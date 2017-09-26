@@ -67,7 +67,7 @@ function update_rsl_push {
   echo "Related Commits" >rsl.tmp
   echo $commits >>rsl.tmp
   echo "Branch:"$REMOTE_BRANCH >>rsl.tmp
-  HEAD_HASH=`git rev-parse $BRANCH_TO_FETCH`
+  HEAD_HASH=`git rev-parse $BRANCH_TO_PUSH`
   echo "HEAD":$HEAD_HASH >>rsl.tmp
   echo "PREV_HASH:"$HASH >>rsl.tmp
 }
@@ -98,7 +98,7 @@ function rsl_init {
     echo "Related Commits" >rsl.tmp
     echo $commits >>rsl.tmp
     echo "Branch:"$REMOTE_BRANCH >>rsl.tmp
-    HEAD_HASH=`git rev-parse $BRANCH_TO_FETCH`
+    HEAD_HASH=`git rev-parse $BRANCH_TO_PUSH`
     echo "HEAD":$HEAD_HASH >>rsl.tmp
     echo "PREV_HASH:"$HASH >>rsl.tmp
 }
