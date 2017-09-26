@@ -84,13 +84,18 @@ developers to ensure the repository metadata is consistent (or at least the
 parts known during the last interaction with the Bitbucket or GitHub server are
 unchanged).
 
-The `securepush` subcommand will only push the currently checked out branch. It
-will also prompt for GPG signatures twice: first for the clearsign of the
-current metadata state for this branch, and second for the commit containing
-that metadata.  The `secure-push` command will also create the `rsl` branch if necessary.
+The `securepush` subcommand will only push the specified branch, or else the currently
+checked out branch if none is specified. It will also prompt for GPG signatures
+twice: first for the clearsign of the current metadata state for this branch,
+and second for the commit containing that metadata.  The `secure-push` command
+will also create the `rsl` branch if necessary.
 
 ```
 git secure-push
+git secure-push HEAD
+git secure-push HEAD:remote_branch
+git secure-push local_branch
+git secure-push local_branch:remote_branch
 ```
 
 
