@@ -31,7 +31,7 @@ Feature: Unique error codes for problematic situations
     And The repo has a feature PR that is ready to merge
     And The GPG signing key is not available
     When I run the git-merge-pr command targeting devel
-    Then the script should return 4
+    Then the script should return 2
 
   @merge
   Scenario: Fail when branch exists locally but not remotely

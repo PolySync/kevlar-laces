@@ -101,15 +101,21 @@ fi
 
 echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
 STASH_OUTPUT="$(git stash save -a)" || exit 1;
-run_command "git fetch --prune" || { unstash_changes && exit 2; }
+
+echo "Securely fetching remote branches and revisions"
+run_command "git secure-fetch" || { restore_original_state && exit 2; }
 run_command "git checkout --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
+
+echo "Cleaning up local repository"
+run_command "git gc"
+
 echo "Attempting to merge"
 MERGE_MESSAGE="\"Merge 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
 run_command "git merge -S --no-ff -m $MERGE_MESSAGE origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
 echo "Merge Successful!"
 
 echo "Attempting to push to remote repository 'origin'"
-run_command "git push origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
+run_command "git secure-push origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
 echo "Push Successful!"
 
 
