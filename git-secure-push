@@ -15,7 +15,7 @@ fi
 #************** Functions ***********************************
 
 function print_usage {
-  echo "Usage: git secure-push [branch]"
+  echo "Usage: git secure-push [<branch> | <local_branch>:<remote_branch> | HEAD]"
   echo ""
   echo "Pushes the current state of a branch and adds a push entry to the RSL."
   echo ""
