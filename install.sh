@@ -20,3 +20,8 @@ then
   echo "export PATH=\$PATH:$DEST_DIR" >> $HOME/.bashrc
   eval "export PATH=$PATH:$DEST_DIR"
 fi
+
+echo "Installation successfull. To learn about usage of this tool, run any of
+the subcommands with the '-h' flag, e.g. 'git merge-pr -h'.
+
+For even more information, please consult the README."
