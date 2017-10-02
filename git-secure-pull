@@ -14,7 +14,7 @@ fi
 
 #************** Functions ***********************************
 function print_usage {
-  echo "Usage: git securepull [branch]"
+  echo "Usage: git secure-pull [branch]"
   echo ""
   echo "Fetches and merges the current state of a branch and validates the RSL leading"
   echo "up to that point."
