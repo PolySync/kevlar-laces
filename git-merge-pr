@@ -5,7 +5,7 @@ BRANCH_TO_MERGE=""
 DESTINATION_BRANCH=""
 
 function usage() {
-	echo "usage: mergepr [--no-prune] <src> <dest>"
+	echo "usage: git merge-pr [--no-prune] <src> <dest>"
 }
 
 if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
