@@ -15,7 +15,7 @@ fi
 #************** Functions ***********************************
 
 function print_usage {
-  echo "Usage: git securefetch [branch]"
+  echo "Usage: git secure-fetch [branch]"
   echo ""
   echo "Fetches the current state of a branch and validates the RSL leading"
   echo "up to that point."
@@ -28,7 +28,7 @@ function print_usage {
 function update_rsl_fetch {
   LAST_ENTRY=$(find_last_entry_number)
   RSL=$(($LAST_ENTRY+1))
-  dd if=/dev/random bs=16 count=1 of=$RSL
+  dd if=/dev/urandom bs=16 count=1 of=$RSL
 
   # Commit the new RSL
   git add $RSL
@@ -50,7 +50,7 @@ function rsl_init {
   init=1
   git checkout -q --orphan rsl
   git rm -qrf .
-  dd if=/dev/random bs=16 count=1 of=1
+  dd if=/dev/urandom bs=16 count=1 of=1
 
   # Commit the new RSL
   git add 1
@@ -85,7 +85,7 @@ function rsl_fetch {
   git merge -q
 
   #Fetch the current branch from server
-  git fetch -q origin $CURRENT_BRANCH 2>/dev/null
+  git fetch -q --no-tags origin $CURRENT_BRANCH 2>/dev/null
 
   RSL=$(find_last_entry_number)
 
