@@ -5,10 +5,10 @@ Feature: --no-prune keeps feature branch
 
   @merge
   Scenario: Merge and keep branch
-    Given A local copy of the repo on the feature branch
-    And The repo has a feature PR that is ready to merge
+    Given a local copy of the repo on the feature branch
+    And the repo has a feature PR that is ready to merge
     When I run the git-merge-pr --no-prune command targeting devel
-    Then The PR should be merged
-    And The merge commit should be signed
-    And The feature branch should still exist
+    Then the PR should be merged
+    And the merge commit should be signed
+    And the feature branch should still exist
 

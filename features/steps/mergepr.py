@@ -10,11 +10,11 @@ import tempfile
 
 import utils
 
-@given('The repo has a {branch} PR that is ready to merge')
+@given('the repo has a {branch} PR that is ready to merge')
 def step_impl(context, branch):
     context.branch_name = branch
 
-@given('There is a merge conflict')
+@given('there is a merge conflict')
 def step_impl(context):
     branch, err, rc = utils.run_with_project_in_path('git -C {0} symbolic-ref --short HEAD'.format(context.mock_developer_dir), context)
     utils.run_with_project_in_path('git -C {0} checkout -q devel'.format(context.mock_developer_dir), context)
@@ -29,7 +29,7 @@ def step_impl(context):
     utils.run_with_project_in_path('git -C {0} push origin feature'.format(context.mock_developer_dir), context)
     utils.run_with_project_in_path('git -C {0} checkout -q {1}'.format(context.mock_developer_dir, branch), context)
 
-@given('The feature branch does not exist remotely')
+@given('the feature branch does not exist remotely')
 def step_impl(context):
     utils.run_with_project_in_path('git -C {0} push origin :feature'.format(context.mock_developer_dir), context)
 
@@ -60,7 +60,7 @@ def step_impl(context, position):
     command = 'git -C {0} merge-pr {1} {2} {3}'.format(context.mock_developer_dir, args[0], args[1], args[2])
     utils.run_with_project_in_path(command, context)
 
-@then('The PR should be merged')
+@then('the PR should be merged')
 def step_impl(context):
     command = "git -C {0} log --max-count=1 --parents --format=oneline {1}".format(context.mock_github_dir, context.target_branch)
     log_output, unused, rc = utils.run_with_project_in_path(command, context)
@@ -69,7 +69,7 @@ def step_impl(context):
     assert_that(log_output, contains_string('Merge'))
     assert_that(log_output, contains_string(context.branch_name))
 
-@then("The {branch} branch should {existence} exist")
+@then("the {branch} branch should {existence} exist")
 def step_impl(context, branch, existence):
     command = "git -C {0} checkout -q {1}".format(context.mock_github_dir, branch)
     args_list = shlex.split(command)

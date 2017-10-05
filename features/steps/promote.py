@@ -10,7 +10,7 @@ import tempfile
 
 import utils
 
-@given('The repo has prerelease tag {prerelease} to promote to {target} as {release}')
+@given('the repo has prerelease tag {prerelease} to promote to {target} as {release}')
 def step_impl(context, prerelease, target, release):
     context.prerelease = prerelease
     context.target = target
@@ -26,7 +26,7 @@ def step_impl(context, branch):
     command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, branch)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
-@then('The tag should be merged')
+@then('the tag should be merged')
 def step_impl(context):
     command = "git -C {0} log --max-count=1 --parents --format=oneline {1}".format(context.mock_github_dir, context.target)
     log_output, unused, rc = utils.run_with_project_in_path(command, context)
@@ -35,7 +35,7 @@ def step_impl(context):
     assert_that(log_output, contains_string('Merge'))
     assert_that(log_output, contains_string(context.tag))
 
-@then('The master branch should be tagged with the semver of the promoted branch')
+@then('the master branch should be tagged with the semver of the promoted branch')
 def step_impl(context):
     command = "git -C {0} describe {1}".format(context.mock_github_dir, context.target)
     describe_output, unused, rc = utils.run_with_project_in_path(command, context)
