@@ -1,0 +1,132 @@
+#!/bin/bash
+
+PRUNE_FLAG=off
+BRANCH_TO_MERGE=""
+DESTINATION_BRANCH=""
+
+function usage() {
+	echo "usage: git merge-pr [--no-prune] <src> <dest>"
+}
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+	usage
+	exit
+fi
+
+while :
+do
+	case "$1" in
+		-h | -help )
+			usage
+			exit 0
+			;;
+		--no-prune )
+			PRUNE_FLAG=on
+			shift
+			;;
+		-* )
+			usage
+			exit 0
+			;;
+		* )
+			if [ -z $BRANCH_TO_MERGE ]; then
+				BRANCH_TO_MERGE="$1"
+				shift
+			elif [ -z $DESTINATION_BRANCH ]; then
+				if [ -n "$1" ]; then
+					DESTINATION_BRANCH="$1"
+					shift
+				else
+					usage
+					exit 0
+				fi
+			else
+				break
+			fi
+	esac
+done
+
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
+
+unstash_changes() {
+	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
+		echo "Attempting to unstash local changes"
+		POP_STASH="$(git stash pop)"
+		if [ $? != 0 ]; then
+			echo "ERROR:"
+			echo "$POP_STASH"
+			exit 9
+		fi
+	fi
+}
+
+
+restore_original_state() {
+	echo "Attempting to return to branch $CURRENT_BRANCH"
+	CLEAR_INDEX="$(git reset --hard HEAD)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$CLEAR_INDEX"
+	fi
+	CHECKOUT_ORIGINAL_OUTPUT="$(git checkout -q $CURRENT_BRANCH)"
+	if [ $? != 0 ]; then
+		echo "ERROR:"
+		echo "$CHECKOUT_ORIGINAL_OUTPUT"
+		exit 8
+	fi
+	unstash_changes
+}
+
+run_command()
+{
+	output=$(eval $1 2>&1)
+	if [ $? != 0 ]; then
+		printf "ERROR: %s\n" "$output"
+		return 1
+	else
+		return 0
+	fi
+}
+
+echo "Attempting to securely merge branch 'origin/$BRANCH_TO_MERGE' into 'origin/$DESTINATION_BRANCH'"
+
+# prevent running on branch to be merged without --no-prune
+if [ $CURRENT_BRANCH = $BRANCH_TO_MERGE ] &&  [ $PRUNE_FLAG = off ]; then
+    echo "ERROR: You are checked out on the branch you are trying to merge."
+	echo "         This will prevent the tool from auto-pruning after merging."
+	echo "         If you want to keep a local copy of this branch, please consider the --no-prune flag."
+	echo "         Otherwise, check out a different branch and try again."
+	exit 10
+fi
+
+echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
+STASH_OUTPUT="$(git stash save -a)" || exit 1;
+
+echo "Securely fetching remote branches and revisions"
+run_command "git secure-fetch" || { restore_original_state && exit 2; }
+run_command "git checkout --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
+
+echo "Cleaning up local repository"
+run_command "git gc"
+
+echo "Attempting to merge"
+MERGE_MESSAGE="\"Merge 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
+run_command "git merge -S --no-ff -m $MERGE_MESSAGE origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
+echo "Merge Successful!"
+
+echo "Attempting to push to remote repository 'origin'"
+run_command "git secure-push origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
+echo "Push Successful!"
+
+
+if [ "$PRUNE_FLAG" = off ]; then
+	run_command "git push origin :$BRANCH_TO_MERGE" || { restore_original_state && exit 6; }
+	BRANCH_EXISTS="$(git show-ref refs/heads/$BRANCH_TO_MERGE)"
+	if [ -n "$BRANCH_EXISTS" ]; then
+		run_command "git branch -d $BRANCH_TO_MERGE" || { restore_original_state && exit 7; }
+	fi
+fi
+
+restore_original_state
+
+exit 0
