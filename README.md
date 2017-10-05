@@ -22,16 +22,21 @@ Running the tests will also require python, pip, and `behave`.
 
 ## Installation
 
+There are two different methods for suggested installation, depending on whether
+you plan to alter this tool or just use the secure commands out of the box.
+
+### Installation for development
+
 Clone the `kevlar-laces` repository to wherever you normally keep your
-repositories. The install script will create symlinks to that location.
-For example purposes, the `~/repos` directory is used, but any persistent
-location will work.
+repositories. Run the script with the `--dev` flag. The install script will
+create symlinks to that location. For example purposes, the `~/repos` directory
+ is used, but any persistent location will work.
 
 ```
 $ cd ~/repos
 $ git clone git@github.com:PolySync/kevlar-laces
 $ cd kevlar-laces
-$ . ./install.sh
+$ . ./install.sh --dev
 ```
 
 The above example explicitly runs the install script with a preceding `.`. This
@@ -41,6 +46,33 @@ already have `$HOME/.local/bin` in `$PATH` or you do not need to run the various
 kevlar-laces git subcommands in the _current_ terminal session, then
 `./install.sh` will suffice.
 
+### Installation for development
+
+Clone the `kevlar-laces` repository to wherever you normally keep your
+repositories. By default, the install script will copy the secure commands into
+`~/.local/bin` (creating the directory if it needs to). After that, you will be
+able to delete `kevlar-laces` and still use the secure git commands. For
+example purposes, the `~/repos` directory is used, but any persistent location
+will work.
+
+```
+$ cd ~/repos
+$ git clone git@github.com:PolySync/kevlar-laces
+$ cd kevlar-laces
+$ . ./install.sh
+$ cd ..
+$ rm -rf kevlar-laces
+```
+
+The above example explicitly runs the install script with a preceding `.`. This
+is solely for convenience in the _current_ terminal session, because
+`install.sh` may need to modify `$PATH` to include `$HOME/.local/bin`. If you
+already have `$HOME/.local/bin` in `$PATH` or you do not need to run the various
+kevlar-laces git subcommands in the _current_ terminal session, then
+`./install.sh` will suffice. It also demonstrates deletion of the repository
+after installation of the scripts, which is completely optional. If you do
+delete the repo, you will have to re-clone and re-install in order to get
+updates.
 
 ## Usage
 
