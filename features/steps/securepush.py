@@ -19,12 +19,12 @@ def most_recent_file_contents(context):
 
     return content
 
-@then('The latest RSL entry should be a push entry')
+@then('the latest RSL entry should be a push entry')
 def step_impl(context):
     checkout_rsl_branch(context)
     assert_that(most_recent_file_contents(context), contains_string('Related Commits'))
 
-@then('The latest RSL entry should contain {snippet}')
+@then('the latest RSL entry should contain {snippet}')
 def step_impl(context, snippet):
     checkout_rsl_branch(context)
     assert_that(most_recent_file_contents(context), contains_string(snippet))

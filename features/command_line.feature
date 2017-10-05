@@ -5,10 +5,10 @@ I want to the scripts to have built in usage instructions
 
 @merge @promote
 Scenario Outline: Display usage and exit 0 when help flag is passed
-  Given A local copy of the repo on the feature branch
-  When The <command> command is run with the -h flag
-  Then The terminal displays usage options for the <command> command
-  And  The script exits with status 0
+  Given a local copy of the repo on the feature branch
+  When the <command> command is run with the -h flag
+  Then the terminal displays usage options for the <command> command
+  And  the script exits with status 0
 
   Examples:
     | command |
@@ -17,11 +17,11 @@ Scenario Outline: Display usage and exit 0 when help flag is passed
 
 @merge
 Scenario Outline: Parse options passed in any order
-  Given A local copy of the repo on the feature branch
-  And The repo has a feature PR that is ready to merge
+  Given a local copy of the repo on the feature branch
+  And the repo has a feature PR that is ready to merge
   When I run the merge-pr command with the --no-prune option in position <position> targeting devel
-  Then The PR should be merged
-  And The feature branch should still exist
+  Then the PR should be merged
+  And the feature branch should still exist
 
   Examples:
     | position |

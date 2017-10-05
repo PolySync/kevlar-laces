@@ -5,7 +5,7 @@ Feature: Secure-fetch creates an RSL branch
 
   @securefetch
   Scenario: Create RSL branch
-    Given A local copy of the repo on the feature branch
+    Given a local copy of the repo on the feature branch
     When I run git-secure-fetch
-    Then The rsl branch should now exist
+    Then the rsl branch should now exist
 

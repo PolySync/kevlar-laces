@@ -19,7 +19,7 @@ def most_recent_file_contents(context):
 
     return content
 
-@then('The latest RSL entry should be a fetch entry')
+@then('the latest RSL entry should be a fetch entry')
 def step_impl(context):
     checkout_rsl_branch(context)
     assert_that(len(most_recent_file_contents(context)), equal_to(16))

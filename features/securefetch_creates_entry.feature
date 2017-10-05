@@ -5,10 +5,10 @@ Feature: Secure-fetch creates a fetch entry
 
   @securefetch
   Scenario Outline: Fetch entry for current branch on RSL branch
-    Given A local copy of the repo on the feature branch
+    Given a local copy of the repo on the feature branch
     And I create a new feature2 branch
     When I run <command>
-    Then The latest RSL entry should be a fetch entry
+    Then the latest RSL entry should be a fetch entry
   Examples:
     | command      |
     | git-secure-fetch |
@@ -16,11 +16,11 @@ Feature: Secure-fetch creates a fetch entry
 
   @securepush
   Scenario Outline: Fail when GPG signing key is not available
-    Given A local copy of the repo on the feature branch
+    Given a local copy of the repo on the feature branch
     And I create a new feature2 branch
-    And The GPG signing key is not available
+    And the GPG signing key is not available
     When I run <command>
-    Then The script should return 4
+    Then the script should return 4
   Examples:
     | command      |
     | git-secure-fetch |
