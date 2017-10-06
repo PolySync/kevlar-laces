@@ -194,11 +194,13 @@ pip install behave pyhamcrest
 ### Running Tests
 
 The `Jenkinsfile` specifies how Jenkins will execute the tests; however, you may
-(and probably should) run the tests locally using `behave`.
+(and probably should) run the tests locally using `behave`. The tests must be 
+run from within the `tests` directory.
 
 #### Running the entire test suite
 
 ```
+cd tests
 behave
 ...
 5 features passed, 0 failed, 0 skipped
@@ -210,6 +212,7 @@ Took 0m6.477s
 #### Running a specific feature test
 
 ```
+cd tests
 behave features/unique_error_codes.feature
 ...
 1 feature passed, 0 failed, 0 skipped
@@ -221,6 +224,7 @@ Took 0m0.730s
 #### Running the tests for a specific subcomponent
 
 ```
+cd tests
 behave --tags promote -k
 ...
 3 features passed, 0 failed, 2 skipped

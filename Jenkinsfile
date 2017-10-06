@@ -4,6 +4,6 @@ node('xenial') {
 	  clean_checkout()
 	}
 	stage('Test') {
-	  sh 'behave -v -x --capture'
+	  sh 'cd tests && behave -v -x --capture'
 	}
 }
