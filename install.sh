@@ -21,6 +21,31 @@ then
   eval "export PATH=$PATH:$DEST_DIR"
 fi
 
+if [ "$1" != --no-override ]
+then
+echo "Overriding existing git push, pull, and fetch commands to use secure versions"
+echo "
+# override existing git push, pull, fetch to use secure versions
+kevlar_git () {
+  prefix=\"\"
+  cmd=\$1
+  shift
+  if [ \"\$cmd\" == \"push\" ] || [ \"\$cmd\" == \"pull\" ] || [ \"\$cmd\" == \"fetch\" ]; then
+    prefix=\"secure-\"
+  fi
+  \"\`which git\`\" \"\$prefix\$cmd\" \"\$@\"
+}
+alias git='kevlar_git'" >> $HOME/.bashrc
+
+  if [ $? != 0 ]
+  then
+    echo "Could not write git command overrides to ~/.bashrc"
+    echo "git fetch, pull, and push will not automatically use secure versions"
+  fi
+fi
+
+source $HOME/.bashrc
+
 echo "Installation successful. To learn about usage of this tool, run any of
 the subcommands with the '-h' flag, e.g. 'git merge-pr -h'.
 
