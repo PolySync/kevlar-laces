@@ -13,6 +13,7 @@ fi
 
 
 #************** Functions ***********************************
+
 function print_usage {
   echo "Usage: git secure-pull [branch]"
   echo ""
@@ -23,12 +24,11 @@ function print_usage {
   echo "origin: `git remote get-url origin`"
 }
 
-
 #This function creates the rsl entries related to the fetch operation
 function update_rsl_fetch {
   LAST_ENTRY=$(find_last_entry_number)
   RSL=$(($LAST_ENTRY+1))
-  dd if=/dev/random bs=16 count=1 of=$RSL
+  dd if=/dev/urandom bs=16 count=1 of=$RSL
 
   # Commit the new RSL
   git add $RSL
@@ -50,7 +50,7 @@ function rsl_init {
   init=1
   git checkout -q --orphan rsl
   git rm -qrf .
-  dd if=/dev/random bs=16 count=1 of=1
+  dd if=/dev/urandom bs=16 count=1 of=1
 
   # Commit the new RSL
   git add 1
@@ -74,45 +74,59 @@ function rsl_fetch {
   while [ -f $RSL ]
   do
     if grep -q HEAD $RSL
-      then
-        #Update Last RSL push entry
-        LAST_VERIFIED_PUSH_ENTRY=$RSL
-        break
-      else
-        RSL=$(($RSL-1))
-      fi
-    done
-    git merge -q
-
-    #Fetch the current branch from server
-    git fetch -q origin $CURRENT_BRANCH 2>/dev/null
-
-    RSL=$(find_last_entry_number)
-
-    #Finding out the last Push entry
-    while [ -f $RSL ]
-    do
-      if grep -q HEAD $RSL
-      then
-        #Get the branch head from the rsl
-        RSL_BRANCH_HEAD=`cat $RSL |grep HEAD |tail -1|cut -d':' -f2`
-        break
-      else
-        RSL=$(($RSL-1))
-      fi
-    done
-
-    #Get the FETCH_HEAD
-    cat .git/FETCH_HEAD
-    FETCH_HEAD=`cat .git/FETCH_HEAD |grep $CURRENT_BRANCH |cut -f1`
-
-    #Verify the branch head in RSL matches with the FETCH_HEAD
-    if  [ "$RSL_BRANCH_HEAD" != "$FETCH_HEAD" ]
     then
-      fetch_status=1
+      #Update Last RSL push entry
+      LAST_VERIFIED_PUSH_ENTRY=$RSL
+      break
     else
-      fetch_status=0
+      RSL=$(($RSL-1))
     fi
+  done
+  git merge -q
+
+  #Fetch the current branch from server
+  git fetch -q --no-tags origin $CURRENT_BRANCH 2>/dev/null
+
+  RSL=$(find_last_entry_number)
+
+  #Finding out the last Push entry for the current branch
+  while [ -f $RSL ]
+  do
+    if grep -q "^Branch:$CURRENT_BRANCH$" $RSL
+    then
+      echo "RSL entry $RSL contains the latest push entry for branch $CURRENT_BRANCH"
+      #Get the branch head from the rsl
+      RSL_BRANCH_HEAD=`cat $RSL |grep HEAD |tail -1|cut -d':' -f2`
+      break
+    else
+      RSL=$(($RSL-1))
+    fi
+  done
+
+  #Get the FETCH_HEAD
+  FETCH_HEAD=`cat .git/FETCH_HEAD |grep $CURRENT_BRANCH |cut -f1`
+
+  #Verify the branch head in RSL matches with the FETCH_HEAD
+  if [ -z $RSL_BRANCH_HEAD ]
+  then
+    echo "No prior push entry in the rsl for branch $CURRENT_BRANCH"
+    fetch_status=0
+  elif  [ "$RSL_BRANCH_HEAD" != "$FETCH_HEAD" ]
+  then
+    echo "ERROR: We fetched a commit that doesn't match the latest push entry"
+    echo ""
+    echo "This is indicative of someone pushing instead of secure-pushing"
+    echo ""
+    echo "FETCH_HEAD: $FETCH_HEAD"
+    echo "PUSH_ENTRY: $RSL_BRANCH_HEAD"
+    echo ""
+    git log --oneline origin/$CURRENT_BRANCH | head
+    restore_original_state
+    exit 99
+    fetch_status=1
+  else
+    fetch_status=0
+  fi
 }
 
 #This function verifies the rsl file
