@@ -31,6 +31,8 @@ function update_rsl_fetch {
   dd if=/dev/urandom bs=16 count=1 of=$RSL
 
   # Commit the new RSL
+  echo "Committing fetch entry to RSL branch."
+  echo "GPG signature required."
   git add $RSL
   git commit -S -m "Adding the fetch entry at RSL"
 }
@@ -53,6 +55,8 @@ function rsl_init {
   dd if=/dev/urandom bs=16 count=1 of=1
 
   # Commit the new RSL
+  echo "Committing inital entries to the RSL branch."
+  echo "GPG signature required."
   git add 1
   git commit -S -qm "Commiting the changes at RSL"
 
@@ -276,7 +280,7 @@ function restore_original_state() {
 }
 
 
-#Get Current Brach
+#Get Current Branch
 PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
 
 while [ $# -ne 0 ]
@@ -307,6 +311,8 @@ then
     exit 0
 fi
 
+echo "Stashing any local changes."
+echo "3 GPG signatures may be required."
 STASH_OUTPUT="$(git stash save -a)"
 if [ $? != 0 ]; then
   echo "ERROR:"

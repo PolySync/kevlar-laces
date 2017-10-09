@@ -32,6 +32,9 @@ function update_rsl_fetch {
 
   # Commit the new RSL
   git add $RSL
+  echo "Committing the fetch entry to the RSL branch."
+  echo "GPG signature required."
+
   git commit -S -m "Adding the fetch entry at RSL"
 }
 
@@ -54,6 +57,8 @@ function rsl_init {
 
   # Commit the new RSL
   git add 1
+  echo "Commiting inital entries to RSL branch."
+  echo "GPG signature required."
   git commit -S -qm "Commiting the changes at RSL"
 
 }
@@ -307,6 +312,8 @@ then
     exit 0
 fi
 
+echo "Stashing any local changes."
+echo "3 GPG signatures may be required."
 STASH_OUTPUT="$(git stash save -a)"
 if [ $? != 0 ]; then
   echo "ERROR:"

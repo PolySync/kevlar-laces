@@ -58,8 +58,13 @@ run_command()
 echo "Attempting to securely promote prerelease $PRERELEASE_TAG into 'origin/$TARGET_BRANCH' with tag $RELEASE_TAG"
 
 echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
+echo "3 GPG signatures may be required to create stash commit."
 STASH_OUTPUT="$(git stash save -a)" || exit 1;
+
+echo "Running secure-fetch on tag $PRERELEASE_TAG."
+echo "GPG authentication required to sign RSL"
 run_command "git secure-fetch $PRERELEASE_TAG" || { unstash_changes && exit 2; }
+
 run_command "git checkout $TARGET_BRANCH" || { unstash_changes && exit 3; }
 
 echo "Attempting to fast-forward latest changes"
@@ -67,10 +72,12 @@ run_command "git merge --ff-only origin/$TARGET_BRANCH" || { restore_original_st
 echo "Fast forward successful!"
 
 echo "Attempting to merge tagged version $PRERELEASE_TAG into $TARGET_BRANCH"
+echo "Signing merge commit. GPG authentication required."
 run_command "git merge -S --no-ff $PRERELEASE_TAG" || { restore_original_state && exit 5; }
 echo "Merge successful!"
 
 echo "Tagging HEAD with $RELEASE_TAG"
+echo "Signing tag object. GPG authentication required."
 run_command "git tag -s $RELEASE_TAG -m $RELEASE_TAG" || { restore_original_state && exit 6; }
 
 echo "Attempting to push to remote repository 'origin'"
