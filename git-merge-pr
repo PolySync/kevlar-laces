@@ -102,24 +102,29 @@ fi
 echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
 STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
 
-echo "Securely fetching remote branches and revisions"
-echo "<---- GPG signature required to commit RSL fetch entry for $DESTINATION_BRANCH"
+echo "Securely fetching remote branches and revisions:"
+echo "    Fetching $DESTINATION_BRANCH..."
+echo "    <---- GPG signature required to commit RSL fetch entry"
 run_command "git secure-fetch origin $DESTINATION_BRANCH" || { restore_original_state && exit 2; }
-echo "<---- GPG signature required to commit RSL fetch entry for $BRANCH_TO_BE_MERGED"
-run_command "git secure-fetch origin $BRANCH_TO_BE_MERGED" || { restore_original_state && exit 2; }
+echo "    Fetching $BRANCH_TO_MERGE..."
+echo "    <---- GPG signature required to commit RSL fetch entry"
+run_command "git secure-fetch origin $BRANCH_TO_MERGE" || { restore_original_state && exit 2; }
 
-run_command "git checkout --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
 
 echo "Cleaning up local repository"
 run_command "git gc"
 
-echo "Attempting to merge"
+echo "Checking out $DESTINATION_BRANCH"
+run_command "git checkout --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
+
+echo "Merging $BRANCH_TO_MERGE into $DESTINATION_BRANCH"
 MERGE_MESSAGE="\"Merge 'origin/$BRANCH_TO_MERGE' into $DESTINATION_BRANCH\""
 run_command "git merge -S --no-ff -m $MERGE_MESSAGE origin/$BRANCH_TO_MERGE" || { restore_original_state && exit 4; }
 echo "Merge Successful!"
 
-echo "Attempting to push to remote repository 'origin'"
-echo "<---- 2 GPG signatures required to clearsign RSL push entry and sign RSL commit"
+echo "Pushing to remote repository 'origin'"
+echo "    clearsigning RSL push entry and signing RSL push commit"
+echo "    <---- 2 GPG signatures required" 
 run_command "git secure-push origin HEAD:$DESTINATION_BRANCH" || { restore_original_state && exit 5; }
 echo "Push Successful!"
 
