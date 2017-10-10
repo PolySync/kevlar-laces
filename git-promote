@@ -58,8 +58,7 @@ run_command()
 echo "Attempting to securely promote prerelease $PRERELEASE_TAG into 'origin/$TARGET_BRANCH' with tag $RELEASE_TAG"
 
 echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
-echo "3 GPG signatures may be required to create stash commit."
-STASH_OUTPUT="$(git stash save -a)" || exit 1;
+STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
 
 echo "Running secure-fetch on tag $PRERELEASE_TAG."
 echo "GPG authentication required to sign RSL"

@@ -370,8 +370,7 @@ then
 fi
 
 echo "Stashing any local changes"
-echo "Three GPG signatures may be required."
-STASH_OUTPUT="$(git stash save -a)"
+STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)"
 if [ $? != 0 ]; then
   echo "ERROR:"
   echo "$STASH_OUTPUT"

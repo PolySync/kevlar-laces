@@ -100,8 +100,7 @@ if [ $CURRENT_BRANCH = $BRANCH_TO_MERGE ] &&  [ $PRUNE_FLAG = off ]; then
 fi
 
 echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
-echo "3 GPG signatures may be required to sign stash commit"
-STASH_OUTPUT="$(git stash save -a)" || exit 1;
+STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
 
 echo "Securely fetching remote branches and revisions"
 echo "GPG signatures required to sign and push to RSL"
