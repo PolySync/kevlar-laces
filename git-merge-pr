@@ -103,8 +103,11 @@ echo "Stashing any local changes and checking out remote branch 'origin/$DESTINA
 STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
 
 echo "Securely fetching remote branches and revisions"
-echo "GPG signature required to commit RSL fetch entry"
-run_command "git secure-fetch" || { restore_original_state && exit 2; }
+echo "GPG signature required to commit RSL fetch entry for $DESTINATION_BRANCH"
+run_command "git secure-fetch origin $DESTINATION_BRANCH" || { restore_original_state && exit 2; }
+echo "GPG signature required to commit RSL fetch entry for $BRANCH_TO_BE_MERGED"
+run_command "git secure-fetch origin $BRANCH_TO_BE_MERGED" || { restore_original_state && exit 2; }
+
 run_command "git checkout --detach origin/$DESTINATION_BRANCH" || { unstash_changes && exit 3; }
 
 echo "Cleaning up local repository"
