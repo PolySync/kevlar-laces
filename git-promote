@@ -58,23 +58,42 @@ run_command()
 echo "Attempting to securely promote prerelease $PRERELEASE_TAG into 'origin/$TARGET_BRANCH' with tag $RELEASE_TAG"
 
 echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
-STASH_OUTPUT="$(git stash save -a)" || exit 1;
+STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
+
+echo "Securely fetching remote branches and tags."
+echo "    Fetching $PRERELEASE_TAG..."
+echo "    Signing RSL fetch entry for $PRERELEASE_TAG..."
+echo "    <---- GPG signature required"
 run_command "git secure-fetch $PRERELEASE_TAG" || { unstash_changes && exit 2; }
+echo "    Fetching $TARGET_BRANCH..."
+echo "    Signing RSL fetch entry for $TARGET_BRANCH..."
+echo "    <---- GPG signature required"
+run_command "git secure-fetch $TARGET_BRANCH" || { unstash_changes && exit 2; }
+
+echo "Checking out $TARGET_BRANCH"
 run_command "git checkout $TARGET_BRANCH" || { unstash_changes && exit 3; }
 
-echo "Attempting to fast-forward latest changes"
+echo "Fast-forward latest changes"
 run_command "git merge --ff-only origin/$TARGET_BRANCH" || { restore_original_state && exit 4; }
 echo "Fast forward successful!"
 
-echo "Attempting to merge tagged version $PRERELEASE_TAG into $TARGET_BRANCH"
+echo "Merging tagged version $PRERELEASE_TAG into $TARGET_BRANCH"
+echo "    Signing merge commit."
+echo "    <---- GPG authentication required."
 run_command "git merge -S --no-ff $PRERELEASE_TAG" || { restore_original_state && exit 5; }
 echo "Merge successful!"
 
 echo "Tagging HEAD with $RELEASE_TAG"
+echo "    Signing tag object."
+echo "    <---- GPG authentication required."
 run_command "git tag -s $RELEASE_TAG -m $RELEASE_TAG" || { restore_original_state && exit 6; }
 
 echo "Attempting to push to remote repository 'origin'"
+echo "    Clearsigning RSL push entry and signing RSL commit for branch $TARGET_BRANCH"
+echo "    <---- 2 GPG signatures required"
 run_command "git secure-push origin $TARGET_BRANCH" || { restore_original_state && exit 7; }
+echo "    Clearsigning RSL push entry and signing RSL commit for tag $RELEASE_TAG"
+echo "    <---- 2 GPG signatures required"
 run_command "git secure-push origin $RELEASE_TAG" || { restore_original_state && exit 7; }
 echo "Push Successful!"
 
