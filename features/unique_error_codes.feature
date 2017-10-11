@@ -54,7 +54,7 @@ Feature: Unique error codes for problematic situations
     And the repo has prerelease tag 1.0.0-devel.1 to promote to master as 1.0.0
     And the 1.0.0 release tag already exists
     When I run the git-promote command from the command line
-    Then the script should return 6
+    Then the script should return 11
 
   @promote
   Scenario: Fail when target branch does not exist

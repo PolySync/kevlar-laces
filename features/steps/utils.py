@@ -6,7 +6,11 @@ import tempfile
 def shell_command(command):
     args_list = shlex.split(command)
     result = subprocess.Popen(args_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = result.stdout.read() if result.stdout else None
+    stderr = result.stderr.read() if result.stderr else None
     result.wait()
+    return_code = result.returncode
+    return (stdout, stderr, return_code)
 
 def run_with_project_in_path(command, context):
     env = os.environ
