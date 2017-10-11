@@ -16,6 +16,13 @@ def step_impl(context, prerelease, target, release):
     context.target = target
     context.tag = release
 
+@given('The remote repo has a release tag {release}')
+def step_impl(context, release):
+    utils.shell_command('git -C {0} tag -f {1}'.format(context.mock_github_dir, release))
+    out, err, rc = utils.shell_command('git -C {0} ls-remote --exit-code --tags origin {1}'.format(context.mock_developer_dir, release))
+    assert_that(rc, equal_to(0))
+    
+
 @when('I run the git-promote command from the command line')
 def step_impl(context):
     command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, context.target)
@@ -34,6 +41,14 @@ def step_impl(context):
     context.sha_hash = fields[0]
     assert_that(log_output, contains_string('Merge'))
     assert_that(log_output, contains_string(context.tag))
+
+@then('the tag should not be merged')
+def step_impl(context):
+    command = "git -C {0} log --max-count=1 --parents --format=oneline {1}".format(context.mock_github_dir, context.target)
+    log_output, unused, rc = utils.run_with_project_in_path(command, context)
+    fields = log_output.split()
+    context.sha_hash = fields[0]
+    assert_that(log_output, not_(contains_string(context.tag)))
 
 @then('the master branch should be tagged with the semver of the promoted branch')
 def step_impl(context):

@@ -15,6 +15,15 @@ CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
 
 STASH_OUTPUT=''
 
+check_for_release_tag(){
+    TAG_EXISTS="$(git ls-remote --exit-code --tags origin $RELEASE_TAG)"
+    if [ $? = 0 ]; then
+        echo "ERROR: "
+        echo "Release tag $RELEASE_TAG already exists in remote repository origin"
+        exit 11
+    fi
+}
+
 unstash_changes() {
 	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
 		echo "Attempting to unstash local changes"
@@ -56,6 +65,7 @@ run_command()
 }
 
 echo "Attempting to securely promote prerelease $PRERELEASE_TAG into 'origin/$TARGET_BRANCH' with tag $RELEASE_TAG"
+check_for_release_tag
 
 echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
 STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
