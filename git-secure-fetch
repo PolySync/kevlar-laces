@@ -35,7 +35,7 @@ function update_rsl_fetch {
   echo "Committing the fetch entry to the RSL branch."
   echo "<---- GPG signature required."
 
-  git commit -S -m "Adding the fetch entry at RSL"
+  git commit -S -m "Adding the fetch entry at RSL for $CURRENT_BRANCH"
 }
 
 #This function pushes the rsl branch to server
