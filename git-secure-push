@@ -84,6 +84,8 @@ function update_rsl_fetch {
     echo `od -A n -t d -N 4 /dev/urandom` >$RSL
 
     git add $RSL
+    echo "Commiting fetch entry to RSL branch."
+    echo "<---- GPG signature required."
     git commit -S -qm "Adding the fetch entry at RSL"
 }
 
@@ -133,7 +135,9 @@ function sign_rsl {
 
   LAST_ENTRY=$(find_last_entry_number)
   RSL=$(($LAST_ENTRY+1))
-  #Signthe rsl
+  #Sign the rsl
+  echo "Clearsigning RSL entry"
+  echo "<---- GPG signature required"
   cat rsl.tmp |gpg2 --default-key $GPG_KEY --clearsign >$RSL
 
   #Remove temp file
@@ -141,6 +145,8 @@ function sign_rsl {
 
   # Commit the new RSL
   git add $RSL
+  echo "Commiting push entry to RSL branch"
+  echo "<---- GPG signature required"
   git commit -S -qm "Adding the push entry at RSL"
 }
 
@@ -363,7 +369,8 @@ then
   exit 0
 fi
 
-STASH_OUTPUT="$(git stash save -a)"
+echo "Stashing any local changes"
+STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)"
 if [ $? != 0 ]; then
   echo "ERROR:"
   echo "$STASH_OUTPUT"
