@@ -147,7 +147,7 @@ function sign_rsl {
   git add $RSL
   echo "Commiting push entry to RSL branch"
   echo "<---- GPG signature required"
-  git commit -S -qm "Adding the push entry at RSL"
+  git commit -S -qm "Adding the push entry at RSL for $BRANCH_TO_PUSH"
 }
 
 #This function pushes the rsl branch to server
