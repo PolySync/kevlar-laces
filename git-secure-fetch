@@ -64,6 +64,7 @@ function rsl_init {
 }
 
 function find_last_entry_number {
+  # the number of files in the RSL branch
   echo $(find . -maxdepth 1 -type f | grep -v 'rsl.tmp' | wc -l)
 }
 
@@ -252,7 +253,6 @@ function rsl_verify {
 
 }
 
-#************************************************************************************
 function unstash_changes() {
   if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
     POP_STASH="$(git stash pop)"
@@ -262,6 +262,7 @@ function unstash_changes() {
       exit 9
     fi
   fi
+  cd $WORKING_DIRECTORY
 }
 
 
@@ -280,9 +281,12 @@ function restore_original_state() {
   unstash_changes
 }
 
+#************************************************************************************
 
-#Get Current Brach
+# Get Current Branch
 PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
+# Get current working directory
+WORKING_DIRECTORY="$(pwd)"
 
 while [ $# -ne 0 ]
 do
@@ -319,6 +323,7 @@ if [ $? != 0 ]; then
   echo "$STASH_OUTPUT"
   exit 1
 fi
+cd $(git rev-parse --show-toplevel)
 
 
 status=1

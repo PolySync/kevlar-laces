@@ -47,6 +47,7 @@ do
 done
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
+WORKING_DIRECTORY=$(pwd)
 
 unstash_changes() {
 	if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
@@ -74,7 +75,8 @@ restore_original_state() {
 		echo "$CHECKOUT_ORIGINAL_OUTPUT"
 		exit 8
 	fi
-	unstash_changes
+    unstash_changes
+    cd $WORKING_DIRECTORY
 }
 
 run_command()
@@ -101,6 +103,7 @@ fi
 
 echo "Stashing any local changes and checking out remote branch 'origin/$DESTINATION_BRANCH'"
 STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
+cd $(git rev-parse --show-toplevel)
 
 echo "Securely fetching remote branches and revisions:"
 echo "    Fetching $DESTINATION_BRANCH..."

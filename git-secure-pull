@@ -251,7 +251,6 @@ function rsl_verify {
 
 }
 
-#************************************************************************************
 function unstash_changes() {
   if [ "$STASH_OUTPUT" != "No local changes to save" ]; then
     POP_STASH="$(git stash pop)"
@@ -276,12 +275,16 @@ function restore_original_state() {
     echo "$CHECKOUT_ORIGINAL_OUTPUT"
           exit 8
   fi
+  cd $WORKING_DIRECTORY
   unstash_changes
 }
 
+#************************************************************************************
 
-#Get Current Branch
+# Get Current Branch
 PRIOR_BRANCH=$(git symbolic-ref --short HEAD)
+# Get current working directory
+WORKING_DIRECTORY=$(pwd)
 
 while [ $# -ne 0 ]
 do
@@ -318,6 +321,7 @@ if [ $? != 0 ]; then
   echo "$STASH_OUTPUT"
   exit 1
 fi
+cd $(git rev-parse --show-toplevel)
 
 
 status=1
