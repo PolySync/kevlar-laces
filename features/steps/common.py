@@ -37,6 +37,12 @@ def step_impl(context):
 def step_impl(context):
     utils.shell_command('cp -a {0}/features/test_file.txt {1}/test_file.txt'.format(os.getcwd(), context.mock_developer_dir))
 
+@given('the project contains subdirectory {directory}')
+def step_impl(context, directory):
+    wd = '{0}/{1}'.format(context.mock_developer_dir, directory)
+    utils.run_with_project_in_path('mkdir {0}/{1}'.format(context.mock_developer_dir, directory), context)
+    context.wd = wd
+
 @given('the {branch} branch contains unsigned commits')
 def step_impl(context, branch):
     utils.run_with_project_in_path('git -C {0} commit --allow-empty --no-gpg-sign -m "creating an unsigned commit"'.format(context.mock_developer_dir), context)
@@ -53,9 +59,12 @@ def step_impl(context, tag):
 @when('the {command} command is run with the -h flag')
 def step_impl(context, command):
     cmd = 'git -C {0} {1} -h'.format(context.mock_developer_dir, command)
-    out, err, rc = utils.run_with_project_in_path(cmd, context)
-    context.exit_code = rc
-    context.stdout = out
+    context.out, context.err, context.rc = utils.run_with_project_in_path(cmd, context)
+
+@when('I run git {action} from the {directory} directory')
+def step_impl(context, action, directory):
+    command = 'git -C {0} {1}'.format(context.wd, action)
+    context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
 @when('I run git-{action}')
 def step_impl(context, action):
@@ -85,11 +94,17 @@ def step_impl(context):
 @then('the repo should be returned to the {branch} branch when I am done')
 def step_impl(context, branch):
     out, err, rc = utils.run_with_project_in_path('git -C {0} branch'.format(context.mock_developer_dir), context)
-    assert_that(out, contains_string('feature'))
+    assert_that(out, contains_string(branch))
+
+@then('the {directory} directory should exist when I am done')
+def step_impl(context, directory):
+    out, err, rc = utils.shell_command('ls {0}/{1}'.format(context.mock_developer_dir, directory))
+    assert_that(context.rc, equal_to(0))
+      
 
 @then('the terminal displays usage options for the {command} command')
 def step_impl(context, command):
-    assert_that(context.stdout, contains_string('usage:'))
+    assert_that(context.out, contains_string('usage:'))
 
 @then('the terminal prints an error')
 def step_impl(context):
@@ -97,4 +112,4 @@ def step_impl(context):
 
 @then('the script exits with status 0')
 def step_impl(context):
-    assert_that(context.exit_code, equal_to(0))
+    assert_that(context.rc, equal_to(0))

@@ -21,7 +21,6 @@ def step_impl(context, release):
     utils.shell_command('git -C {0} tag -f {1}'.format(context.mock_github_dir, release))
     out, err, rc = utils.shell_command('git -C {0} ls-remote --exit-code --tags origin {1}'.format(context.mock_developer_dir, release))
     assert_that(rc, equal_to(0))
-    
 
 @when('I run the git-promote command from the command line')
 def step_impl(context):
@@ -31,6 +30,11 @@ def step_impl(context):
 @when('I run the git-promote command targeting {branch}')
 def step_impl(context, branch):
     command = 'git -C {0} promote {1} {2}'.format(context.mock_developer_dir, context.prerelease, branch)
+    context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
+
+@when('I run the git-promote command from the {directory} directory')
+def step_impl(context, directory):
+    command = 'git -C {0} promote {1} {2}'.format(context.wd, context.prerelease, context.target)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
 @then('the tag should be merged')

@@ -39,6 +39,11 @@ def step_impl(context, target):
     command = 'git -C {0} merge-pr {1} {2}'.format(context.mock_developer_dir, context.branch_name, context.target_branch)
     context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
 
+@when('I run the git-merge-pr command from the {directory} directory')
+def step_impl(context, directory):
+    command = 'git -C {0} merge-pr feature devel'.format(context.wd)
+    context.out, context.err, context.rc = utils.run_with_project_in_path(command, context)
+
 @when('I run the git-merge-pr --no-prune command targeting {target}')
 def step_impl(context, target):
     context.target_branch = target
