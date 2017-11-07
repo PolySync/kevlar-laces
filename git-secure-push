@@ -312,11 +312,14 @@ function restore_original_state() {
     echo "$CHECKOUT_ORIGINAL_OUTPUT"
           exit 8
   fi
+  cd $WORKING_DIRECTORY
   unstash_changes
 }
 
 
 #************************************************************************************
+
+WORKING_DIRECTORY=$(pwd)
 PRIOR_BRANCH="$(git symbolic-ref --short HEAD 2>&1)"
 if [[ $? != 0 ]]; then
 	PRIOR_BRANCH="$(git rev-parse HEAD)"
@@ -376,6 +379,7 @@ if [ $? != 0 ]; then
   echo "$STASH_OUTPUT"
   exit 1
 fi
+cd $(git rev-parse --show-toplevel)
 
 
 #Update RSL

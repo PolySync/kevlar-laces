@@ -12,6 +12,7 @@ INDEX=`expr index "$PRERELEASE_TAG" -`
 RELEASE_TAG=${PRERELEASE_TAG:0:INDEX-1}
 
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD)"
+WORKING_DIRECTORY=$(pwd)
 
 STASH_OUTPUT=''
 
@@ -51,6 +52,7 @@ restore_original_state()
 		exit 8
 	fi
 	unstash_changes
+    cd $WORKING_DIRECTORY
 }
 
 run_command()
@@ -69,6 +71,7 @@ check_for_release_tag
 
 echo "Stashing any local changes and checking out remote branch 'origin/$TARGET_BRANCH'"
 STASH_OUTPUT="$(git -c commit.gpgSign=false stash save -a)" || exit 1;
+cd $(git rev-parse --show-toplevel)
 
 echo "Securely fetching remote branches and tags."
 echo "    Fetching $PRERELEASE_TAG..."
