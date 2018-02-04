@@ -25,7 +25,9 @@ sudo apt install git gnupg2
 ### Installation
 
 Clone the `kevlar-laces` repository to wherever you normally keep your
-repositories. The install script will create symlinks to that location.
+repositories. 
+The install script will create symlinks to that location.
+It will also create an alias for git commands to ensure that the secure versions of `push`, `pull`, and `fetch` are always used. To disable this, run the install script with the `--no-override` option.
 For example purposes, the `~/Repositories` directory is used, but any persistent
 location will work.
 
@@ -33,15 +35,8 @@ location will work.
 cd ~/Repositories
 git clone git@github.com:PolySync/kevlar-laces
 cd kevlar-laces
-. ./install.sh
+./install.sh
 ```
-
-The above example explicitly runs the install script with a preceding `.`. This
-is solely for convenience in the _current_ terminal session, because
-`install.sh` may need to modify `$PATH` to include `$HOME/.local/bin`. If you
-already have `$HOME/.local/bin` in `$PATH` or you do not need to run the various
-kevlar-laces git subcommands in the _current_ terminal session, then
-`./install.sh` will suffice.
 
 ## Usage
 
