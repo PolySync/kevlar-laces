@@ -1,0 +1,16 @@
+[package]
+name = "kevlar-laces"
+version = "0.1.0"
+authors = ["Rusell Mull <rmull@polysync.io>"]
+
+[dependencies]
+
+
+[[bin]]
+name = "git-merge-pr"
+path = "src/git-merge-pr.rs"
+
+
+[[bin]]
+name = "git-promote"
+path = "src/git-promote.rs"
