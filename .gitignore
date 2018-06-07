@@ -1,1 +1,3 @@
-*.pyc
+/target
+**/*.rs.bk
+
