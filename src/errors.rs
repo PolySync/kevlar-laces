@@ -6,6 +6,7 @@ error_chain!{
         // Serde(::serde_json::Error);
         // GPGME(::gpgme::Error);
         IO(::std::io::Error);
+        Time(::std::time::SystemTimeError);
     }
 
     errors {

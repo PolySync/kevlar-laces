@@ -4,9 +4,10 @@ version = "0.1.0"
 authors = ["Rusell Mull <rmull@polysync.io>"]
 
 [dependencies]
-git-rsl = { git = "ssh://git@github.com/PolySync/git-rsl.git" }
-git2 = { git = "https://github.com/alexcrichton/git2-rs", commit="2a53469b0db9a01ae3894d3925518c776eccc34a"}
+git-rsl = { git = "ssh://git@github.com/PolySync/git-rsl.git", branch="changes_for_external_commands" }
+git2 = { git = "https://github.com/alexcrichton/git2-rs", branch="master" }
 error-chain = "0.11.0"
+structopt = "0.2"
 
 [[bin]]
 name = "git-merge-pr"

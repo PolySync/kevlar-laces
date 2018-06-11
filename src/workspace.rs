@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use errors::*;
 
 pub struct Workspace {
-    repo: git2::Repository,
+    pub repo: git2::Repository,
     original_branch_name: String,
     stash_id: Option<git2::Oid>,
     original_dir: Option<PathBuf>
