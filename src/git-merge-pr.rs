@@ -16,6 +16,7 @@ use git_rsl::utils::git;
 
 use errors::*;
 use structopt::StructOpt;
+use std::process;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "git merge-pr")]
@@ -153,6 +154,21 @@ fn merge_pr(opts: Opt) -> Result<()> {
     Ok(())
 }
 
+fn handle_error(e: &Error) -> () {
+    errors::report_error(&e);
+    match *e {
+        Error(ErrorKind::Rsl(git_rsl::errors::ErrorKind::ReadError(_)), _) => {
+            process::exit(1)
+        }
+        Error(_, _) => {
+            process::exit(2)
+        }
+    }
+}
+
 fn main() {
-    merge_pr(Opt::from_args()).unwrap();
+    match merge_pr(Opt::from_args()) {
+        Ok(()) => process::exit(0),
+        Err(e) => handle_error(&e)
+    }
 }
