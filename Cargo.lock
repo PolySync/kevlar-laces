@@ -204,7 +204,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "git-rsl"
 version = "0.1.0"
-source = "git+ssh://git@github.com/PolySync/git-rsl.git?branch=changes_for_external_commands#efa3c310fe7c5064abbd7d95bb696061c93f3e92"
+source = "git+ssh://git@github.com/PolySync/git-rsl.git?branch=changes_for_external_commands#5babdcbcc0568e2165e359213f050384b608aa99"
 dependencies = [
  "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -212,7 +212,7 @@ dependencies = [
  "git2 0.7.1 (git+https://github.com/alexcrichton/git2-rs)",
  "gpgme 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hex 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-crypto 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -307,6 +307,7 @@ dependencies = [
  "error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "git-rsl 0.1.0 (git+ssh://git@github.com/PolySync/git-rsl.git?branch=changes_for_external_commands)",
  "git2 0.7.1 (git+https://github.com/alexcrichton/git2-rs)",
+ "lazy_static 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.42 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)",

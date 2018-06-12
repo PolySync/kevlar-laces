@@ -43,7 +43,10 @@ fn merge_pr(opts: Opt) -> Result<()> {
                 you back where you started when this is all through.")?
         .to_owned();
 
-    if !opts.no_prune && current_branch_name == opts.branch_to_merge {
+    let local_destination_branch = format!("refs/heads/{}", opts.destination_branch);
+    let local_branch_to_merge = format!("refs/heads/{}", opts.branch_to_merge);
+
+    if !opts.no_prune && current_branch_name == local_branch_to_merge {
         bail!("You are checked out on the branch you are trying to merge. \
                This will prevent the tool from auto-pruning after merging. \
                If you want to keep a local copy of this branch, please consider \
@@ -63,10 +66,9 @@ fn merge_pr(opts: Opt) -> Result<()> {
                  &vec![opts.branch_to_merge.as_str(),
                        opts.destination_branch.as_str()])?;
 
-    let local_destination_branch = &format!("refs/heads/{}", opts.destination_branch);
 
-    let origin_destination_branch = &format!("refs/remotes/origin/{}", opts.destination_branch);
-    let origin_branch_to_merge = &format!("refs/remotes/origin/{}", opts.branch_to_merge);
+    let origin_destination_branch = format!("refs/remotes/origin/{}", opts.destination_branch);
+    let origin_branch_to_merge = format!("refs/remotes/origin/{}", opts.branch_to_merge);
 
     let destination_branch_oid = ws.repo.refname_to_id(&origin_destination_branch)?;
     let branch_to_merge_oid = ws.repo.refname_to_id(&origin_branch_to_merge)?;

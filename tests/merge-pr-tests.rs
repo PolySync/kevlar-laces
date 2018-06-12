@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 extern crate assert_cli;
 use assert_cli::{Assert, Environment};
 
@@ -9,6 +12,12 @@ mod fixture;
 use fixture::TestFixture;
 
 use git_rsl::{BranchName, RemoteName};
+
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref SEQUENTIAL_TEST_MUTEX: Mutex<()> = Mutex::new(());
+}
 
 fn create_pr(e: &Environment, repo: &str, pr_name: &str) {
     // make a PR branch
@@ -30,16 +39,40 @@ fn create_pr(e: &Environment, repo: &str, pr_name: &str) {
 
 #[test]
 fn test_basic() {
+    let _guard = SEQUENTIAL_TEST_MUTEX.lock();
     let fixture = TestFixture::new();
 
     create_pr(&fixture.env, fixture.local_path(), "test-pr");
     fixture::run(&fixture.env, &["git", "checkout", "master"]);
 
     // merge it
-
     Assert::cargo_binary("git-merge-pr")
         .with_env(&fixture.env)
         .with_args(&["test-pr", "master"])
+        .stdout().contains("Pushing updated RSL to remote")
+        .unwrap();
+}
+
+
+#[test]
+fn test_no_prune() {
+    let _guard = SEQUENTIAL_TEST_MUTEX.lock();
+    let fixture = TestFixture::new();
+    create_pr(&fixture.env, fixture.local_path(), "test-pr");
+
+    // should print an error message when on the test-pr branch
+    fixture::run(&fixture.env, &["git", "checkout", "test-pr"]);
+    Assert::cargo_binary("git-merge-pr")
+        .with_env(&fixture.env)
+        .with_args(&["test-pr", "master"])
+        .fails_with(101)
+        .stderr().contains("You are checked out on the branch you are trying to merge")
+        .unwrap();
+
+   // But it should then work with no-prune
+    Assert::cargo_binary("git-merge-pr")
+        .with_env(&fixture.env)
+        .with_args(&["test-pr", "master", "--no-prune"])
         .stdout().contains("Pushing updated RSL to remote")
         .unwrap();
 }

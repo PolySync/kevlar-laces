@@ -13,6 +13,7 @@ structopt = "0.2"
 assert_cli = "0.6.1"
 tempfile = "3.0.2"
 libc = "0.2.42"
+lazy_static = "1.0"
 
 [[bin]]
 name = "git-merge-pr"
