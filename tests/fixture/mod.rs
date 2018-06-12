@@ -3,6 +3,7 @@ use git_rsl::{self, BranchName, RemoteName};
 use tempfile::{self, TempDir};
 use assert_cli::{Assert, Environment};
 
+#[allow(dead_code)]
 pub struct TestFixture {
     origin: TempDir,
     local: TempDir,
@@ -12,7 +13,6 @@ pub struct TestFixture {
 
 use std::fs::File;
 use std::io::Write;
-use std::io::prelude::*;
 
 fn write_gpg_keygen_script(out_path: &str) {
     let mut f = File::create(out_path).unwrap();
