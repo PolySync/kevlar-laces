@@ -9,6 +9,11 @@ git2 = { git = "https://github.com/alexcrichton/git2-rs", branch="master" }
 error-chain = "0.11.0"
 structopt = "0.2"
 
+[dev-dependencies]
+assert_cli = "0.6.1"
+tempfile = "3.0.2"
+libc = "0.2.42"
+
 [[bin]]
 name = "git-merge-pr"
 path = "src/git-merge-pr.rs"
