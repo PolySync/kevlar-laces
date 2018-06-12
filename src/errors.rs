@@ -9,6 +9,5 @@ error_chain!{
         Time(::std::time::SystemTimeError);
     }
 
-    errors {
-    }
+    errors {}
 }
