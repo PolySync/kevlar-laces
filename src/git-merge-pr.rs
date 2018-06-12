@@ -7,12 +7,13 @@ extern crate error_chain;
 #[macro_use]
 extern crate structopt;
 
-mod workspace;
 mod errors;
 
-use workspace::Workspace;
-use git_rsl::{fetch, push};
+use git_rsl::Workspace;
+use git_rsl::fetch::secure_fetch;
+use git_rsl::push::secure_push;
 use git_rsl::utils::git;
+
 use errors::*;
 use structopt::StructOpt;
 
@@ -34,7 +35,7 @@ struct Opt {
 }
 
 fn merge_pr(opts: Opt) -> Result<()> {
-    let repo = git::discover_repo()?;
+    let mut repo = git::discover_repo()?;
 
     let current_branch_name = repo.head()?
         .name()
@@ -50,17 +51,17 @@ fn merge_pr(opts: Opt) -> Result<()> {
                and try again.");
     }
 
-    let ws = Workspace::new(repo)?;
+    let ws = Workspace::new(&mut repo)?;
 
     // secure-fetch src, dest
     let mut remote = ws.repo.find_remote("origin")
         .chain_err(|| "unable to find remote 'origin'")?;
 
     // secure fetch both branches from origin
-    fetch::secure_fetch(&ws.repo,
-                        &mut remote,
-                        &vec![opts.branch_to_merge.as_str(),
-                              opts.destination_branch.as_str()])?;
+    secure_fetch(&ws.repo,
+                 &mut remote,
+                 &vec![opts.branch_to_merge.as_str(),
+                       opts.destination_branch.as_str()])?;
 
     let local_destination_branch = &format!("refs/heads/{}", opts.destination_branch);
 
@@ -90,7 +91,7 @@ fn merge_pr(opts: Opt) -> Result<()> {
     ws.repo.set_head(&local_destination_branch)?;
 
     // secure-fetch leaves the working copy in a crazy state, with the RSL
-    // checked out, so we need force checkout the destination branch
+    // branch checked out, so we need to force checkout the destination branch
     ws.repo.checkout_head(Some(git2::build::CheckoutBuilder::new().force()))?;
 
     match ws.repo.merge_analysis(&[&destination_branch_annotated_commit])? {
@@ -133,7 +134,7 @@ fn merge_pr(opts: Opt) -> Result<()> {
     )?;
 
     // push destination_branch
-    push::secure_push(&ws.repo, &mut remote, &[&opts.destination_branch])?;
+    secure_push(&ws.repo, &mut remote, &[&opts.destination_branch])?;
 
     if !opts.no_prune {
         // delete the remote branch by pushing to the ":branch_to_merge"

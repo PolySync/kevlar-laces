@@ -1,5 +1,5 @@
 use git2;
-use git_rsl;
+use git_rsl::{self, BranchName, RemoteName};
 use tempfile::{self, TempDir};
 use assert_cli::{Assert, Environment};
 
@@ -109,7 +109,12 @@ impl TestFixture {
 
             let mut local_repo = git2::Repository::open(local_path).unwrap();
 
-            git_rsl::secure_push_with_cleanup(&mut local_repo, "master", "origin").unwrap();
+            let origin = RemoteName::new("origin");
+            git_rsl::rsl_init_with_cleanup(&mut local_repo, &origin).unwrap();
+
+            git_rsl::secure_push_with_cleanup(&mut local_repo,
+                                              &origin,
+                                              &BranchName::new("master")).unwrap();
         }
 
         TestFixture { origin, local, gpg_home, env: e }
