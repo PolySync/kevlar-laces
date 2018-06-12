@@ -51,6 +51,12 @@ fn test_basic() {
         .with_args(&["test-pr", "master"])
         .stdout().contains("Pushing updated RSL to remote")
         .unwrap();
+
+    // The test-pr branch should be gone now
+    Assert::command(&["git", "branch", "--all"])
+        .with_env(&fixture.env)
+        .stdout().doesnt_contain("test-pr")
+        .unwrap();
 }
 
 
@@ -74,5 +80,17 @@ fn test_no_prune() {
         .with_env(&fixture.env)
         .with_args(&["test-pr", "master", "--no-prune"])
         .stdout().contains("Pushing updated RSL to remote")
+        .unwrap();
+
+    // The test-pr branch should still exist
+    Assert::command(&["git", "branch"])
+        .with_env(&fixture.env)
+        .stdout().contains("test-pr")
+        .unwrap();
+
+    // ... and should be the current branch
+    Assert::command(&["git", "rev-parse", "--abbrev-ref", "HEAD"])
+        .with_env(&fixture.env)
+        .stdout().contains("test-pr")
         .unwrap();
 }
