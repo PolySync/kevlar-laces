@@ -8,6 +8,8 @@ extern crate git_rsl;
 mod fixture;
 use fixture::TestFixture;
 
+use git_rsl::{BranchName, RemoteName};
+
 fn create_pr(e: &Environment, repo: &str, pr_name: &str) {
     // make a PR branch
     let bar_path = &format!("{}/bar", repo);
@@ -19,7 +21,10 @@ fn create_pr(e: &Environment, repo: &str, pr_name: &str) {
     ]);
 
     let mut gr = git2::Repository::open(repo).unwrap();
-    git_rsl::secure_push_with_cleanup(&mut gr, pr_name, "origin").unwrap();
+    git_rsl::secure_push_with_cleanup(&mut gr,
+                                      &RemoteName::new("origin"),
+                                      &BranchName::new(pr_name))
+        .unwrap();
 }
 
 
