@@ -13,11 +13,10 @@ extern crate git_rsl;
 extern crate regex;
 
 pub mod errors;
-pub mod workspace;
 
 use regex::Regex;
 use structopt::StructOpt;
-use workspace::Workspace;
+use git_rsl::Workspace;
 use git_rsl::utils::git::{
     discover_repo,
     checkout_branch,
@@ -63,8 +62,8 @@ fn main() {
 }
 
 fn run(options: &Opt) -> Result<()> {
-    let repo = discover_repo()?;
-    let ws = Workspace::new(repo)?;
+    let mut repo = discover_repo()?;
+    let ws = Workspace::new(&mut repo)?;
     let release_tag = parse_release_tag(&options.tag)?;
     debug!("branch: {}, tag: {}, release_tag: {}, remote: {}", options.branch, options.tag, release_tag, options.remote);
 
