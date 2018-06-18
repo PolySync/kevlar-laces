@@ -34,7 +34,9 @@ fn first_gpg_key_id(gpghome: &str) -> String {
         .output()
         .unwrap();
 
-//    "pub:u:1024:17:31BC51B4BB930CA9:1528761082:::u:::scaSCA:::::::"
+    // This splits out lines of this form:
+    //    "pub:u:1024:17:31BC51B4BB930CA9:1528761082:::u:::scaSCA:::::::"
+    // Keep the one that starts with 'pub', and take the 5th field.
 
     String::from_utf8_lossy(&out.stdout)
         .lines().filter(|l| l.starts_with("pub"))
