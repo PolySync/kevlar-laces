@@ -72,7 +72,7 @@ fn test_no_prune() {
         .with_env(&fixture.env)
         .with_args(&["test-pr", "master"])
         .fails_with(2)
-        .stderr().contains("You are checked out on the branch you are trying to merge")
+        .stdout().contains("You are checked out on the branch you are trying to merge")
         .unwrap();
 
    // But it should then work with no-prune
