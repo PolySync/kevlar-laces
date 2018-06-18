@@ -106,12 +106,10 @@ fn merge_pr(opts: Opt) -> Result<()> {
             git::fast_forward_onto_head(&ws.repo, &origin_destination_branch)?
         },
         _ =>
-            bail!("your local {} branch is not in the history of origin/{},\
+            bail!("your local {0} branch is not in the history of origin/{0},\
                    so we can't do a fast-forward merge. You've probably made \
                    a local commit to it. Reconcile the situation (probably by \
-                   resetting to origin/{}) and try again.",
-                  opts.destination_branch,
-                  opts.destination_branch,
+                   resetting to origin/{0}) and try again.",
                   opts.destination_branch)
     }
 
