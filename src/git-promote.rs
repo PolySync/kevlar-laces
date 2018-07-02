@@ -100,6 +100,7 @@ fn run(options: &Opt) -> Result<()> {
         info!("Local is already up to date");
     }
 
+    // Create the merge and commit
     let tag_oid = ws.repo.refname_to_id(&format!("refs/tags/{}", &options.tag))?;
     let branch_oid = ws.repo.refname_to_id(&format!("refs/heads/{}", &options.branch))?;
     let tag_commit = ws.repo.find_tag(tag_oid)?.peel()?.peel_to_commit()?;
@@ -144,11 +145,16 @@ fn run(options: &Opt) -> Result<()> {
     let tag_ref = format!("refs/tags/{0}:refs/tags/{0}", release_tag);
     // Todo -- secure push release tag -- not currently implemented in git-rsl
     remote.push(&[tag_ref.as_str()], None)?;
-    info!("Releas tag {} pushed", release_tag);
+    info!("Release tag {} pushed", release_tag);
 
+    println!("Pushed release tag {} to {}", release_tag, options.branch);
     Ok(())
 }
 
+
+/// Returns the release tag portion of a branch tag string according to conventions
+///
+/// If given a branch tag such as 1.2.3-devel-54, it will return 1.2.3
 fn parse_release_tag(tag: &str) -> Result<&str> {
     lazy_static! {
         static ref TAG_PATTERN: Regex = Regex::new("\\d+\\.\\d+\\.\\d+").unwrap();
