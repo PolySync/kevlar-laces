@@ -152,7 +152,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "error-chain"
-version = "0.11.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "backtrace 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -204,10 +204,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "git-rsl"
 version = "0.1.0"
-source = "git+ssh://git@github.com/PolySync/git-rsl.git?branch=changes_for_external_commands#5babdcbcc0568e2165e359213f050384b608aa99"
+source = "git+ssh://git@github.com/PolySync/git-rsl.git#e5012abb3c4db8249efda54f896fb896e8976312"
 dependencies = [
  "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fs_extra 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "git2 0.7.1 (git+https://github.com/alexcrichton/git2-rs)",
  "gpgme 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -304,8 +304,8 @@ name = "kevlar-laces"
 version = "0.1.0"
 dependencies = [
  "assert_cli 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "git-rsl 0.1.0 (git+ssh://git@github.com/PolySync/git-rsl.git?branch=changes_for_external_commands)",
+ "error-chain 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "git-rsl 0.1.0 (git+ssh://git@github.com/PolySync/git-rsl.git)",
  "git2 0.7.1 (git+https://github.com/alexcrichton/git2-rs)",
  "lazy_static 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.42 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -802,14 +802,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum difference 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "524cbf6897b527295dff137cec09ecf3a05f4fddffd7dfcd1585403449e74198"
 "checksum dtoa 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "09c3753c3db574d215cba4ea76018483895d7bff25a31b49ba45db21c48e50ab"
 "checksum environment 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1f4b14e20978669064c33b4c1e0fb4083412e40fe56cbea2eae80fd7591503ee"
-"checksum error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ff511d5dc435d703f4971bc399647c9bc38e20cb41452e3b9feb4765419ed3f3"
+"checksum error-chain 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)" = "07e791d3be96241c77c43846b665ef1384606da2cd2a48730abe606a12906e02"
 "checksum failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "934799b6c1de475a012a02dab0ace1ace43789ee4b99bcfbf1a2e3e8ced5de82"
 "checksum failure_derive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c7cdda555bb90c9bb67a3b670a0f42de8e73f5981524123ad8578aafec8ddb8b"
 "checksum fs_extra 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5f2a4a2034423744d2cc7ca2068453168dcdb82c438419e639a26bd87839c674"
 "checksum fuchsia-zircon 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2e9763c69ebaae630ba35f74888db465e49e259ba1bc0eda7d06f4a067615d82"
 "checksum fuchsia-zircon-sys 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 "checksum gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)" = "5e33ec290da0d127825013597dbdfc28bee4964690c7ce1166cbc2a7bd08b1bb"
-"checksum git-rsl 0.1.0 (git+ssh://git@github.com/PolySync/git-rsl.git?branch=changes_for_external_commands)" = "<none>"
+"checksum git-rsl 0.1.0 (git+ssh://git@github.com/PolySync/git-rsl.git)" = "<none>"
 "checksum git2 0.7.1 (git+https://github.com/alexcrichton/git2-rs)" = "<none>"
 "checksum gpg-error 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "c732e7f1b15b2e2a3c8be3ccdc8d645d3c22628901252318931fa54c1e13e08f"
 "checksum gpgme 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5fc2e61d152f17dd930a994847b3db34dfa7218604f62b7a286584e9496f9f4f"
