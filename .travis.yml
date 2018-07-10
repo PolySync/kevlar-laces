@@ -12,4 +12,6 @@ cache: cargo
 addons:
   apt:
     packages:
+      - libgpg-error
+      - libgpg-error-dev
       - libgpgme11-dev
